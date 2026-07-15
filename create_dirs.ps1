@@ -1,0 +1,43 @@
+$dirs = @(
+    "src\app\core\constants",
+    "src\app\core\models",
+    "src\app\core\services",
+    "src\app\core\utilities",
+    "src\app\layout\main-layout",
+    "src\app\layout\header",
+    "src\app\layout\footer",
+    "src\app\shared\components",
+    "src\app\shared\directives",
+    "src\app\shared\pipes",
+    "src\app\shared\models",
+    "src\app\shared\utilities",
+    "src\app\shared\ui\button",
+    "src\app\shared\ui\icon",
+    "src\app\shared\ui\card",
+    "src\app\shared\ui\section-header",
+    "src\app\shared\ui\page-container",
+    "src\app\shared\ui\badge",
+    "src\app\shared\ui\image",
+    "src\app\features\home\pages\home-page",
+    "src\app\features\home\components",
+    "src\app\features\home\data",
+    "src\app\features\home\models",
+    "src\app\features\services\pages\services-page",
+    "src\app\features\services\pages\service-detail-page",
+    "src\app\features\services\components",
+    "src\app\features\services\data",
+    "src\app\features\services\models",
+    "src\app\features\products\pages\products-page",
+    "src\app\features\company\pages\company-page",
+    "src\app\features\blogs\pages\blogs-page",
+    "src\app\features\blogs\pages\blog-detail-page",
+    "src\app\features\blogs\data",
+    "src\app\features\careers\pages\careers-page",
+    "src\app\features\careers\pages\career-detail-page",
+    "src\app\features\contact\pages\contact-page",
+    "src\app\features\not-found\pages\not-found-page"
+)
+
+foreach ($dir in $dirs) {
+    New-Item -ItemType Directory -Force -Path $dir | Out-Null
+}

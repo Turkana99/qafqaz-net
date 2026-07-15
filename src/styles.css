@@ -1,0 +1,133 @@
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
+
+@layer base {
+  :root {
+    --color-navy: #091334;
+    --color-blue: #0038FF;
+    --color-cyan: #00C2FF;
+    --color-green: #00E08F;
+
+    --color-gradient-start: #0000FE;
+    --color-gradient-end: #18E792;
+
+    --color-text-main: #1E293B;
+    --color-text-secondary: #475569;
+    --color-text-muted: #94A3B8;
+
+    --color-surface: #F8FAFC;
+    --color-surface-card: #FFFFFF;
+    --color-surface-light: #F1F5F9;
+
+    --color-border: #E2E8F0;
+    --color-success: #10B981;
+
+    --gradient-main: linear-gradient(90deg, var(--color-gradient-start) 0%, var(--color-gradient-end) 100%);
+    --font-bdo: 'BDO Grotesk', Arial, sans-serif;
+    
+    /* Centralized Design Values */
+    --color-primary-dark: #0A1642;
+    --color-gradient-blue: #0000FE;
+    --color-gradient-green: #18E792;
+    --color-hero-description: #B4B4B4;
+    --color-white: #FFFFFF;
+    --container-main: 1200px;
+    --color-black: #0A1642; /* Keeping for backward compatibility if needed, but primary-dark is preferred now */
+    --gradient-primary: linear-gradient(90deg, #0000FE 0%, #18E792 100%);
+    --gradient-primary-reverse: linear-gradient(90deg, #18E792 0%, #0000FE 100%);
+  }
+
+  html,
+  body {
+    height: 100%;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    color: var(--color-text-main);
+    background-color: var(--color-surface);
+    font-family: 'BDO Grotesk', Arial, sans-serif;
+  }
+
+  button,
+  input,
+  textarea,
+  select {
+    font: inherit;
+  }
+}
+
+@layer components {
+  /* Common Container */
+  .container-main {
+    width: 100%;
+    max-width: var(--container-main);
+    margin-inline: auto;
+    padding-inline: 16px;
+  }
+  
+  @media (min-width: 768px) {
+    .container-main {
+      padding-inline: 24px;
+    }
+  }
+}
+
+@layer utilities {
+  .text-gradient-primary {
+    background: var(--gradient-primary);
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+  }
+  
+  .text-gradient-primary-reverse {
+    background: var(--gradient-primary-reverse);
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+  }
+  
+  .btn-gradient {
+    position: relative;
+    z-index: 1;
+    background: var(--gradient-main);
+  }
+  .btn-gradient::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: var(--gradient-primary-reverse);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: -1;
+  }
+  .btn-gradient:hover::before,
+  .btn-gradient:focus-visible::before {
+    opacity: 1;
+  }
+  
+  @media (prefers-reduced-motion: reduce) {
+    .btn-gradient::before {
+      transition: none;
+    }
+  }
+}
+
+@font-face {
+  font-family: 'BDO Grotesk';
+  src: url('/assets/fonts/bdo-grotesk-regular.ttf/BDOGrotesk-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'BDO Grotesk';
+  src: url('/assets/fonts/bdo-grotesk-regular.ttf/BDOGrotesk-DemiBold.ttf') format('truetype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
