@@ -21,11 +21,10 @@ export interface PartnerItem {
 }
 
 export const PARTNERS: readonly PartnerItem[] = [
-  { id: '1', name: 'LogoIpsum 1', logoUrl: 'assets/images/partners/logo1.svg' },
-  { id: '2', name: 'LogoIpsum 2', logoUrl: 'assets/images/partners/logo2.svg' },
-  { id: '3', name: 'LogoIpsum 3', logoUrl: 'assets/images/partners/logo3.svg' },
-  { id: '4', name: 'LogoIpsum 4', logoUrl: 'assets/images/partners/logo4.svg' },
-  { id: '5', name: 'LogoIpsum 5', logoUrl: 'assets/images/partners/logo5.svg' },
+  { id: '1', name: 'LogoIpsum 1', logoUrl: 'assets/logoipsum1.svg' },
+  { id: '2', name: 'LogoIpsum 2', logoUrl: 'assets/logoipsum2.svg' },
+  { id: '3', name: 'LogoIpsum 3', logoUrl: 'assets/logoipsum3.svg' },
+  { id: '4', name: 'LogoIpsum 4', logoUrl: 'assets/logoipsum4.svg' },
 ];
 
 export interface BlogPost {

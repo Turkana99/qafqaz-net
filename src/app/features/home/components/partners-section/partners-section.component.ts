@@ -12,7 +12,7 @@ import { ButtonComponent } from '../../../../shared/ui/button/button.component';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="py-20 lg:py-32 bg-surface">
-      <div class="container-custom">
+      <div class="container-main">
         <div class="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-16">
           <app-section-header 
             title="Tərəfdaşlarımız"

@@ -10,7 +10,7 @@ import { IconComponent } from '../../shared/ui/icon/icon.component';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <footer class="bg-surface-card pt-16 pb-8 border-t border-border mt-20">
-      <div class="container-custom">
+      <div class="container-main">
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
           <!-- Brand -->
           <div class="lg:col-span-1">

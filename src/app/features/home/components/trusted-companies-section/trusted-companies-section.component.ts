@@ -1,39 +1,84 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { PARTNERS } from '../../../../core/constants/mock-data';
-import { IconComponent } from '../../../../shared/ui/icon/icon.component';
 
 @Component({
   selector: 'app-trusted-companies-section',
   standalone: true,
-  imports: [IconComponent],
+  imports: [],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <section class="bg-white py-6 border-b border-border">
-      <div class="container-custom">
-        <div class="flex flex-col md:flex-row items-center justify-between gap-6">
-          <div class="text-sm font-bold text-text-main whitespace-nowrap hidden md:block">
-            100+ şirkət güvənclə istifadə edir
-          </div>
-          
-          <div class="flex items-center gap-8 md:gap-12 overflow-x-auto w-full md:w-auto pb-2 md:pb-0 hide-scrollbar scroll-smooth">
-            @for (partner of partners; track partner.id) {
-              <div class="flex items-center gap-2 text-text-secondary hover:text-text-main transition-colors min-w-max cursor-pointer">
-                <app-icon name="hexagon" [size]="24" class="text-primary-blue/80"></app-icon>
-                <span class="font-bold text-lg tracking-tight">{{ partner.name }}</span>
-              </div>
-            }
-          </div>
+    <section class="trusted-companies">
+      <div class="container-main trusted-companies__inner">
+        <p class="trusted-companies__title">
+          100+ şirkət güvənlə bizi seçir
+        </p>
+        
+        <div class="trusted-companies__logos">
+          @for (partner of partners; track partner.id) {
+            <img [src]="partner.logoUrl" [alt]="partner.name" class="trusted-companies__logo" />
+          }
         </div>
       </div>
     </section>
   `,
   styles: [`
-    .hide-scrollbar::-webkit-scrollbar {
-      display: none;
+    .trusted-companies {
+      background-color: #ffffff;
+      border-bottom: 1px solid var(--color-border);
+      padding-block: 48px;
     }
-    .hide-scrollbar {
-      -ms-overflow-style: none;
-      scrollbar-width: none;
+    .trusted-companies__inner {
+      display: grid;
+      grid-template-columns: minmax(220px, 1.2fr) minmax(0, 3fr);
+      align-items: center;
+      gap: 32px;
+    }
+    .trusted-companies__title {
+      font-family: "BDO Grotesk", sans-serif;
+      font-weight: 600;
+      font-style: normal;
+      font-size: 24px;
+      line-height: 100%;
+      letter-spacing: 0;
+      color: var(--color-black, #0a1642);
+      margin: 0;
+    }
+    .trusted-companies__logos {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      align-items: center;
+      justify-items: center;
+      gap: 24px;
+    }
+    .trusted-companies__logo {
+      width: auto;
+      max-width: 150px;
+      height: 32px;
+      object-fit: contain;
+      opacity: 0.85;
+      transition: opacity 250ms ease;
+    }
+    .trusted-companies__logo:hover {
+      opacity: 1;
+    }
+
+    @media (max-width: 900px) {
+      .trusted-companies__inner {
+        grid-template-columns: 1fr;
+        text-align: center;
+        gap: 24px;
+      }
+      .trusted-companies__logos {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .trusted-companies__title {
+        font-size: 20px;
+      }
+    }
+    @media (max-width: 480px) {
+      .trusted-companies__logos {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
     }
   `]
 })

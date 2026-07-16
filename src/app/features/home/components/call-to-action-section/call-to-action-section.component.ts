@@ -11,7 +11,7 @@ import { ButtonComponent } from '../../../../shared/ui/button/button.component';
       <!-- Network Background Placeholder -->
       <div class="absolute inset-0 z-0 opacity-10 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary-blue via-transparent to-transparent"></div>
       
-      <div class="container-custom relative z-10 text-center max-w-4xl mx-auto flex flex-col items-center">
+      <div class="container-main relative z-10 text-center max-w-4xl mx-auto flex flex-col items-center">
         <h2 class="text-3xl md:text-5xl font-bold text-primary-navy mb-6 leading-tight">
           Rəqəmsal həllərinizə buradan bizimlə başlayın
         </h2>

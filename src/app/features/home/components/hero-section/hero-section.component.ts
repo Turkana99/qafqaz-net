@@ -28,9 +28,8 @@ interface HeroFeature {
              İT TƏRƏFDAŞINIZ
            </h1>
            
-           <p class="font-bdo font-normal text-[18px] leading-[24px] tracking-normal text-hero-description max-w-[500px] mt-6">
-             Biznesinizi inkişaf etdirmək üçün effektiv və fərdi<br class="hidden sm:block"/>
-             İT həlləri təqdim edirik.
+           <p class="font-bdo font-normal text-[18px] leading-[30px] tracking-normal text-hero-description max-w-[500px] mt-6">
+             Biznesinizi inkişaf etdirmək üçün <span class="hero-highlight">effektiv</span> və <span class="hero-highlight">fərdi</span> İT həlləri təqdim edirik.
            </p>
            
            <!-- Feature list -->

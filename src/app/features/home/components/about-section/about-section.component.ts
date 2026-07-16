@@ -11,7 +11,7 @@ import { CardComponent } from '../../../../shared/ui/card/card.component';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="py-20 lg:py-32 bg-surface">
-      <div class="container-custom">
+      <div class="container-main">
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           <!-- Text and Stats -->
           <div class="flex flex-col gap-10">
