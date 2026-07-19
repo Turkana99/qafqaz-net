@@ -1,18 +1,19 @@
 import {ChangeDetectionStrategy, Component} from '@angular/core';
 import {RouterLink} from '@angular/router';
 import {SERVICES} from '../../../../core/constants/mock-data';
+import {RevealDirective} from '../../../../shared/ui/reveal/reveal.directive';
 
 @Component({
     selector: 'app-services-section',
     standalone: true,
-    imports: [RouterLink],
+    imports: [RouterLink, RevealDirective],
     changeDetection: ChangeDetectionStrategy.OnPush,
     template: `
     <section class="py-20 lg:py-32 bg-white">
       <div class="container-main">
         
         <!-- Subtitle Badge -->
-        <div class="inline-flex items-center gap-2 bg-[#F7F9FC] rounded-[7px] px-4 min-h-[32px] mb-6">
+        <div appReveal revealDirection="left" [revealDelay]="0" class="inline-flex items-center gap-2 bg-[#F7F9FC] rounded-[7px] px-4 min-h-[32px] mb-6">
           <img src="assets/icons/serviceIcon.svg" alt="" class="w-5 h-5 object-contain">
           <span class="text-[16px] text-[#0A1642] font-normal font-bdo m-0 tracking-normal align-middle mt-[2px]">
             İnnovativ həllər, ölçülə bilən nəticələr
@@ -22,29 +23,31 @@ import {SERVICES} from '../../../../core/constants/mock-data';
         <!-- Top Row: Title and Button -->
         <div class="flex flex-col lg:flex-row lg:items-start justify-between gap-8 mb-16">
           
-          <h2 class="text-[32px] md:text-[60px] leading-[1.2] md:leading-[70px] font-bold font-bdo text-[#0A1642] tracking-normal max-w-[800px]">
+          <h2 appReveal revealDirection="left" [revealDelay]="100" class="text-[32px] md:text-[60px] leading-[1.2] md:leading-[70px] font-bold font-bdo text-[#0A1642] tracking-normal max-w-[800px]">
             Aşağıdakı xidmətlər üzrə<br class="hidden md:block"> ixtisaslaşmışıq
           </h2>
           
-          <a
-            routerLink="/services"
-            class="group inline-flex h-[48px] shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-[12px] bg-[#F7F9FC] px-6 font-bdo text-[16px] font-medium leading-none text-[#4343FF] transition-colors duration-300 hover:text-[#0000AD] focus-visible:text-[#0000AD] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0000AD] focus-visible:ring-offset-2"
-          >
-            <span class="font-bdo font-bold transition-colors duration-300 group-hover:text-[#0000AD] group-focus-visible:text-[#0000AD]">Daha çox göstər</span>
+          <div appReveal revealDirection="right" [revealDelay]="200">
+            <a
+              routerLink="/services"
+              class="group inline-flex h-[48px] shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-[12px] bg-[#F7F9FC] px-6 font-bdo text-[16px] font-medium leading-none text-[#4343FF] transition-colors duration-300 hover:text-[#0000AD] focus-visible:text-[#0000AD] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0000AD] focus-visible:ring-offset-2"
+            >
+              <span class="font-bdo font-bold transition-colors duration-300 group-hover:text-[#0000AD] group-focus-visible:text-[#0000AD]">Daha çox göstər</span>
 
-            <span
-              aria-hidden="true"
-              class="h-5 w-5 bg-current transition-colors duration-300"
-              style="mask: url('/assets/icons/right.svg') no-repeat center / contain; -webkit-mask: url('/assets/icons/right.svg') no-repeat center / contain;"
-            ></span>
-          </a>
+              <span
+                aria-hidden="true"
+                class="h-5 w-5 bg-current transition-colors duration-300"
+                style="mask: url('/assets/icons/right.svg') no-repeat center / contain; -webkit-mask: url('/assets/icons/right.svg') no-repeat center / contain;"
+              ></span>
+            </a>
+          </div>
 
         </div>
 
         <!-- Services Grid -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          @for (service of services; track service.slug) {
-            <a [routerLink]="['/services', service.slug]" class="group service-card-hover block w-full lg:min-h-[278px] rounded-[24px] pt-8 pr-8 pb-8 pl-[31px] bg-[#F7F9FC] flex flex-col transition-transform duration-300 ease-in hover:-translate-y-[10px] hover:scale-[1.02] focus-within:-translate-y-[10px] focus-within:scale-[1.02] outline-none motion-reduce:transition-none motion-reduce:transform-none">
+          @for (service of services; track service.slug; let i = $index) {
+            <a appReveal revealDirection="up" [revealDelay]="i * 100" [routerLink]="['/services', service.slug]" class="group service-card-hover block w-full lg:min-h-[278px] rounded-[24px] pt-8 pr-8 pb-8 pl-[31px] bg-[#F7F9FC] flex flex-col transition-transform duration-300 ease-in hover:-translate-y-[10px] hover:scale-[1.02] focus-within:-translate-y-[10px] focus-within:scale-[1.02] outline-none motion-reduce:transition-none motion-reduce:transform-none">
               
               <!-- Icon Row -->
               <div class="flex items-start justify-between mb-6">

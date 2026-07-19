@@ -1,18 +1,19 @@
 import {ChangeDetectionStrategy, Component, input} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {AboutStatistic} from '../../../core/constants/mock-data';
+import {AnimatedNumberComponent} from '../animated-number/animated-number.component';
 
 @Component({
     selector: 'app-statistic-card',
     standalone: true,
-    imports: [CommonModule],
+    imports: [CommonModule, AnimatedNumberComponent],
     changeDetection: ChangeDetectionStrategy.OnPush,
     template: `
     <div class="bg-white rounded-[20px] shadow-[0_4px_20px_rgba(0,0,0,0.05)] p-8 flex flex-col justify-start h-full min-h-[190px]"
          [ngClass]="{'md:min-h-[360px]': stat().size === 'large'}">
       <div class="flex items-center">
         <span class="text-[48px] leading-[50px] font-bold font-bdo text-[#0A1642]">
-          {{ stat().value }}
+          <app-animated-number [finalValue]="stat().value" [sequence]="stat().animationSequence"></app-animated-number>
         </span>
         @if (stat().suffix) {
           <span class="text-[48px] leading-[50px] font-bold font-bdo text-[#0A1642] ml-3">

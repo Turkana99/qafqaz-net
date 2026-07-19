@@ -143,6 +143,7 @@ export interface AboutStatistic {
     readonly description?: string;
     readonly size: StatisticCardSize;
     readonly showPlus?: boolean;
+    readonly animationSequence?: readonly number[];
 }
 
 export const ABOUT_STATS: ReadonlyArray < AboutStatistic > = [
@@ -151,23 +152,27 @@ export const ABOUT_STATS: ReadonlyArray < AboutStatistic > = [
         label: 'Layihə',
         description: 'Hər bir layihə müştəri tələblərinə uyğun şəkildə planlanaraq yüksək keyfiyyətlə icra olunmuş və vaxtında uğurla təhvil verilmişdir.',
         size: 'large',
-        showPlus: true
+        showPlus: true,
+        animationSequence: [165, 145, 135, 125, 100, 80, 60, 50, 30, 10]
     }, {
         value: '1',
         label: 'Tərəfdaş',
         size: 'small',
-        showPlus: true
+        showPlus: true,
+        animationSequence: [100, 80, 50, 25, 10, 5, 2, 1]
     }, {
         value: '1',
         suffix: 'illik',
         label: 'Təcrübə',
         size: 'small',
-        showPlus: false
+        showPlus: false,
+        animationSequence: [20, 15, 12, 10, 8, 5, 3, 2, 1]
     }, {
         value: '1',
         label: 'Müştəri',
         description: 'Müştərilərimizin bizə olan güvəni və məmnuniyyəti illər ərzində qurduğumuz peşəkar münasibətin nəticəsidir.',
         size: 'large',
-        showPlus: true
+        showPlus: true,
+        animationSequence: [100, 75, 50, 30, 15, 10, 5, 3, 2, 1]
     },
 ];

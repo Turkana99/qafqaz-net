@@ -36,6 +36,13 @@
     --color-black: #0A1642; /* Keeping for backward compatibility if needed, but primary-dark is preferred now */
     --gradient-primary: linear-gradient(90deg, #0000FE 0%, #18E792 100%);
     --gradient-primary-reverse: linear-gradient(90deg, #18E792 0%, #0000FE 100%);
+    
+    /* Animation Tokens */
+    --animation-fast: 300ms;
+    --animation-medium: 600ms;
+    --animation-slow: 800ms;
+    --animation-easing: cubic-bezier(0.22, 1, 0.36, 1);
+    --reveal-distance: 40px;
   }
 
   html,

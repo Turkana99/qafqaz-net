@@ -3,16 +3,17 @@ import {RouterLink, RouterLinkActive} from '@angular/router';
 import {NAV_ITEMS} from '../../core/constants/navigation';
 import {ButtonComponent} from '../../shared/ui/button/button.component';
 import {IconComponent} from '../../shared/ui/icon/icon.component';
+import {RevealDirective} from '../../shared/ui/reveal/reveal.directive';
 
 @Component({
     selector: 'app-header',
     standalone: true,
     imports: [
-        RouterLink, RouterLinkActive, ButtonComponent, IconComponent
+        RouterLink, RouterLinkActive, ButtonComponent, IconComponent, RevealDirective
     ],
     changeDetection: ChangeDetectionStrategy.OnPush,
     template: `
-    <header class="fixed top-0 w-full z-50 transition-all duration-300">
+    <header class="fixed top-0 w-full z-50 transition-all duration-300" appReveal revealDirection="down" [revealDelay]="0">
       <div class="container-main py-4">
         <div class="bg-white rounded-2xl px-2 py-4 flex items-center justify-between w-full shadow-sm">
           <!-- Logo -->

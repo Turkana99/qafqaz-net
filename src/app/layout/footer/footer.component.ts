@@ -1,5 +1,6 @@
 import {ChangeDetectionStrategy, Component} from '@angular/core';
 import {RouterLink} from '@angular/router';
+import {RevealDirective} from '../../shared/ui/reveal/reveal.directive';
 
 interface FooterLink {
     readonly label: string;
@@ -64,7 +65,7 @@ const SOCIAL_LINKS: ReadonlyArray < SocialLink > = [
 @Component({
     selector: 'app-footer',
     standalone: true,
-    imports: [RouterLink],
+    imports: [RouterLink, RevealDirective],
     changeDetection: ChangeDetectionStrategy.OnPush,
     template: `
     <footer class="bg-white pt-16 pb-12 mt-20">
@@ -74,14 +75,14 @@ const SOCIAL_LINKS: ReadonlyArray < SocialLink > = [
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12 mb-20">
           
           <!-- First Column: Logo -->
-          <div class="flex flex-col items-start">
+          <div appReveal revealDirection="up" [revealDelay]="0" class="flex flex-col items-start">
             <a routerLink="/" aria-label="QafqazNet Home" class="block focus:outline-none focus-visible:ring-2 focus-visible:ring-[#4343FF] rounded">
               <img src="/assets/logos/qafqaznet-logo.png" alt="QafqazNet Logo" class="w-[179px] h-[38px] object-contain object-left" />
             </a>
           </div>
           
           <!-- Second Column: First Navigation Group -->
-          <nav class="flex flex-col" aria-label="Footer First Navigation">
+          <nav appReveal revealDirection="up" [revealDelay]="100" class="flex flex-col" aria-label="Footer First Navigation">
             <ul class="flex flex-col gap-4 m-0 p-0 list-none">
               @for (item of firstNavGroup; track item.route) {
                 <li>
@@ -94,7 +95,7 @@ const SOCIAL_LINKS: ReadonlyArray < SocialLink > = [
           </nav>
 
           <!-- Third Column: Second Navigation Group -->
-          <nav class="flex flex-col" aria-label="Footer Second Navigation">
+          <nav appReveal revealDirection="up" [revealDelay]="200" class="flex flex-col" aria-label="Footer Second Navigation">
             <ul class="flex flex-col gap-4 m-0 p-0 list-none">
               @for (item of secondNavGroup; track item.route) {
                 <li>
@@ -107,7 +108,7 @@ const SOCIAL_LINKS: ReadonlyArray < SocialLink > = [
           </nav>
 
           <!-- Fourth Column: Contact -->
-          <div class="flex flex-col gap-4 font-bdo font-normal text-[16px] leading-[24px] text-[#0A1642]">
+          <div appReveal revealDirection="up" [revealDelay]="300" class="flex flex-col gap-4 font-bdo font-normal text-[16px] leading-[24px] text-[#0A1642]">
             <div>
               Telefon: 
               <a href="tel:+994102346464" class="text-[#0A1642] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#4343FF] rounded">+994102346464</a>,
@@ -125,7 +126,7 @@ const SOCIAL_LINKS: ReadonlyArray < SocialLink > = [
         </div>
         
         <!-- Lower Row -->
-        <div class="flex flex-col-reverse md:flex-row items-start md:items-center justify-between gap-6 pt-8">
+        <div appReveal revealDirection="up" [revealDelay]="400" class="flex flex-col-reverse md:flex-row items-start md:items-center justify-between gap-6 pt-8 border-t border-border">
           
           <!-- Copyright -->
           <p class="font-bdo font-normal text-[16px] leading-[24px] text-[#0A1642] m-0">

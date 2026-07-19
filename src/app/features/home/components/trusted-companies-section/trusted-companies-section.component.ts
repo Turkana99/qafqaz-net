@@ -1,19 +1,20 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { PARTNERS } from '../../../../core/constants/mock-data';
+import { RevealDirective } from '../../../../shared/ui/reveal/reveal.directive';
 
 @Component({
   selector: 'app-trusted-companies-section',
   standalone: true,
-  imports: [],
+  imports: [RevealDirective],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="trusted-companies">
       <div class="container-main trusted-companies__inner">
-        <p class="trusted-companies__title">
+        <p appReveal revealDirection="left" class="trusted-companies__title">
           100+ şirkət güvənlə bizi seçir
         </p>
         
-        <div class="logo-marquee">
+        <div appReveal revealDirection="right" [revealDelay]="150" class="logo-marquee">
           <div class="logo-marquee__track">
             <div class="logo-marquee__group">
               @for (partner of partners; track partner.id) {
