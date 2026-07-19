@@ -101,7 +101,9 @@
   .btn-gradient {
     position: relative;
     z-index: 1;
+    isolation: isolate;
     background: var(--gradient-main);
+    box-shadow: 0 6px 15px 0 #FFFFFF99 inset;
   }
   .btn-gradient::before {
     content: "";
@@ -110,7 +112,7 @@
     border-radius: inherit;
     background: var(--gradient-primary-reverse);
     opacity: 0;
-    transition: opacity 0.3s ease;
+    transition: opacity 1000ms ease;
     z-index: -1;
   }
   .btn-gradient:hover::before,

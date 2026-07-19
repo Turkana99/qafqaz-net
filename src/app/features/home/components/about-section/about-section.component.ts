@@ -1,51 +1,65 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { STATS } from '../../../../core/constants/mock-data';
-import { SectionHeaderComponent } from '../../../../shared/ui/section-header/section-header.component';
-import { IconComponent } from '../../../../shared/ui/icon/icon.component';
-import { CardComponent } from '../../../../shared/ui/card/card.component';
+import {ChangeDetectionStrategy, Component} from '@angular/core';
+import {ABOUT_STATS} from '../../../../core/constants/mock-data';
+import {StatisticCardComponent} from '../../../../shared/ui/statistic-card/statistic-card.component';
+import {CommonModule} from '@angular/common';
 
 @Component({
-  selector: 'app-about-section',
-  standalone: true,
-  imports: [SectionHeaderComponent, IconComponent, CardComponent],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  template: `
+    selector: 'app-about-section',
+    standalone: true,
+    imports: [
+        CommonModule, StatisticCardComponent
+    ],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    template: `
     <section class="py-20 lg:py-32 bg-surface">
       <div class="container-main">
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-          <!-- Text and Stats -->
-          <div class="flex flex-col gap-10">
-            <app-section-header 
-              eyebrow="Haqqımızda qısa məlumat"
-              title="QAFQAZNET 2015-ci ildən etibarən bizneslərin inkişafına dəstək olan etibarlı İT tərəfdaşıdır."
-              description="Biz texnologiyanı sadəcə bir vasitə kimi deyil, biznes uğurunuzun əsas açarı kimi görürük.">
-            </app-section-header>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              @for (stat of stats; track stat.label) {
-                <app-card customClass="!p-6 flex flex-col justify-center items-start gap-3">
-                  <div class="flex items-center gap-3">
-                    <span class="text-4xl md:text-5xl font-bold text-text-main">{{ stat.value }}</span>
-                    <app-icon [name]="stat.icon" class="text-accent-green" [size]="28"></app-icon>
-                  </div>
-                  <span class="text-sm font-bold text-text-secondary uppercase tracking-wider">{{ stat.label }}</span>
-                </app-card>
-              }
+        <div class="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_454px] gap-16 lg:gap-24 items-start">
+          
+          <!-- Left Content Area -->
+          <div class="flex flex-col gap-12">
+            
+            <!-- Badge and Heading -->
+            <div class="flex flex-col items-start gap-6">
+              <div class="inline-flex items-center gap-2 bg-white rounded-[7px] px-4 min-h-[32px] shadow-sm">
+                <img src="assets/icons/aboutIcon.svg" alt="" class="w-5 h-5 object-contain">
+                <span class="text-[16px] text-[#0A1642] leading-[20px] font-normal m-0 tracking-normal align-middle mt-[2px]">
+                  Rəqəmsal inkişafınız üçün ağıllı İT həlləri
+                </span>
+              </div>
+              
+              <h2 class="text-[28px] md:text-[36px] leading-[1.3] font-bold text-[#0A1642] tracking-normal">
+                <span class="uppercase">QAFQAZNET 2015-Cİ İLDƏN ETİBARƏN</span> bizneslərin inkişafına dəstək olan 
+                etibarlı İT tərəfdaşıdır.<br class="hidden md:block">
+                Biz texnologiyanı sadəcə bir<br class="hidden md:block">
+                vasitə kimi deyil, biznes<br class="hidden md:block">
+                uğurunun əsas açarı kimi görürük.
+              </h2>
             </div>
+
+            <!-- Statistic Cards Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+              <div class="flex flex-col gap-6">
+                <app-statistic-card [stat]="stats[0]"></app-statistic-card>
+                <app-statistic-card [stat]="stats[1]"></app-statistic-card>
+              </div>
+              <div class="flex flex-col gap-6 ">
+                <app-statistic-card [stat]="stats[2]"></app-statistic-card>
+                <app-statistic-card [stat]="stats[3]"></app-statistic-card>
+              </div>
+            </div>
+
           </div>
 
-          <!-- Image -->
-          <div class="relative h-[400px] sm:h-[500px] lg:h-[700px] rounded-[40px] overflow-hidden shadow-2xl">
-            <!-- Using a placeholder block with a gradient as actual image is not provided -->
-            <div class="absolute inset-0 bg-gradient-to-br from-primary-navy to-primary-blue flex items-center justify-center">
-               <span class="text-white/80 font-medium text-2xl uppercase tracking-widest">Ofisimiz</span>
-            </div>
+          <!-- Right Image Area -->
+          <div class="relative w-full lg:w-[454px] aspect-[454/676] rounded-[40px] overflow-hidden mt-8 lg:mt-[65px]  shadow-[0_20px_40px_rgba(0,0,0,0.08)]">
+            <img src="assets/backgrounds/aboutImg.png" alt="QafqazNet office team" class="w-full h-full object-cover">
           </div>
+          
         </div>
       </div>
     </section>
   `
 })
 export class AboutSectionComponent {
-  stats = STATS;
+    stats = ABOUT_STATS;
 }

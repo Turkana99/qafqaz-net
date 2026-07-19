@@ -62,7 +62,7 @@ export class ButtonComponent {
         variantClass = 'bg-primary-blue text-white hover:bg-blue-700';
         break;
       case 'gradient':
-        variantClass = 'btn-gradient text-white shadow-[0px_6px_15px_0px_#FFFFFF99_inset]';
+        variantClass = 'btn-gradient text-white';
         break;
       case 'secondary':
         variantClass = 'bg-surface-light text-text-main hover:bg-gray-200';
