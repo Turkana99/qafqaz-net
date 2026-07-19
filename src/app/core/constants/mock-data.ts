@@ -1,101 +1,137 @@
 export interface ServiceItem {
-    slug: string;
-    title: string;
-    description: string;
-    icon: string;
+    readonly slug: string;
+    readonly title: string;
+    readonly description: string;
+    readonly icon: string;
+    readonly hoverIcon?: string;
 }
 
-export const SERVICES: readonly ServiceItem[] = [
+export const SERVICES: ReadonlyArray < ServiceItem > = [
+    {
+        slug: 'server-data-center',
+        title: 'Server Otaqlarının və Data Mərkəzlərinin Layihələndirilməsi və Qurulması',
+        description: 'Server otaqları və data mərkəzləri üçün dayanıqlı və təhlükəsiz infrastruktur həlləri.',
+        icon: '/assets/icons/serv1.svg',
+        hoverIcon: '/assets/icons/serviceRightIcon.svg'
+    },
     {
         slug: 'it-konsaltinq',
         title: 'İT Konsaltinq',
-        description: 'Biznesinizin inkişafı üçün doğru İT strategiyasının qurulması.',
-        icon: 'monitor'
+        description: 'Texnologiya strategiyanızı inkişaf etdirin, investisiyalarınızı maksimuma çatdırın.',
+        icon: '/assets/icons/serv2.svg',
+        hoverIcon: '/assets/icons/serviceRightIcon.svg'
     },
     {
-        slug: 'veb-saytlar',
-        title: 'Veb Saytların Hazırlanması',
-        description: 'Müasir və funksional veb saytların hazırlanması.',
-        icon: 'globe'
+        slug: 'infrastruktur-ve-sebeke',
+        title: 'İnfrastruktur və Şəbəkə',
+        description: 'İnfrastruktur və şəbəkə texnologiya strategiyanızı inkişaf etdirin, investisiyalarınızı maksimuma çatdırın.',
+        icon: '/assets/icons/serv3.svg',
+        hoverIcon: '/assets/icons/serviceRightIcon.svg'
     },
     {
-        slug: 'sistem-inteqrasiyasi',
-        title: 'Sistem İnteqrasiyası',
-        description: 'Müxtəlif sistemlərin bir-biri ilə inteqrasiya edilməsi.',
-        icon: 'settings'
-    },
-    {
-        slug: 'cloud-heller',
-        title: 'Bulud Həlləri',
-        description: 'Təhlükəsiz və sürətli bulud infrastrukturunun qurulması.',
-        icon: 'cloud'
+        slug: 'bulud-texnologiyalari',
+        title: 'Bulud Texnologiyaları',
+        description: 'Miqyaslana bilən bulud həlləri ilə əməliyyatlarınızı optimallaşdırın.',
+        icon: '/assets/icons/serv4.svg',
+        hoverIcon: '/assets/icons/serviceRightIcon.svg'
+    }, {
+        slug: 'verilenler-bazasi',
+        title: 'Verilənlər Bazası və İnformasiya İdarəetməsi',
+        description: 'Məlumatlarınızı effektiv idarə edin, təhlükəsizliyi və sürəti təmin edin.',
+        icon: '/assets/icons/serv5.svg',
+        hoverIcon: '/assets/icons/serviceRightIcon.svg'
     }, {
         slug: 'kiber-tehlukesizlik',
-        title: 'Kiber Təhlükəsizlik',
-        description: 'Məlumatlarınızın təhlükəsizliyinin tam təmin edilməsi.',
-        icon: 'shield'
+        title: 'Kiber Təhlükəsizlik və İT Standartlarına Uyğunluq',
+        description: 'Biznesinizi kibertəhlükələrdən qoruyun, İT təhlükəsizlik standartlarına riayət edin.',
+        icon: '/assets/icons/serv6.svg',
+        hoverIcon: '/assets/icons/serviceRightIcon.svg'
     }, {
-        slug: 'texniki-destek',
-        title: 'Texniki Dəstək',
-        description: '7/24 fasiləsiz texniki dəstək xidmətinin göstərilməsi.',
-        icon: 'headset'
-    }
+        slug: 'proqram-teminati',
+        title: 'Proqram Təminatı',
+        description: 'Biznesinizin spesifik tələblərinə uyğun etibarlı, miqyaslana bilən və yüksək performanslı proqram təminatı həlləri hazırlayın.',
+        icon: '/assets/icons/serv7.svg',
+        hoverIcon: '/assets/icons/serviceRightIcon.svg'
+    }, {
+        slug: 'hosting-ve-veb',
+        title: 'Hosting və Veb Xidmətləri',
+        description: 'Etibarlı hosting və güclü veb həllərlə onlayn mövcudluğunuzu artırın.',
+        icon: '/assets/icons/serv8.svg',
+        hoverIcon: '/assets/icons/serviceRightIcon.svg'
+    }, {
+        slug: 'dizayn-ve-vizualizasiya',
+        title: 'Dizayn və Vizualizasiya',
+        description: 'Biznesinizin unikal yönünü və vizual gücünü ön plana çıxaran yaradıcı dizayn və vizuallaşdırma həlləri təqdim edin.',
+        icon: '/assets/icons/serv9.svg',
+        hoverIcon: '/assets/icons/serviceRightIcon.svg'
+    },
 ];
 
 export interface PartnerItem {
-    id: string;
-    name: string;
-    logoUrl: string;
+    readonly id: string;
+    readonly name: string;
+    readonly logoUrl: string;
 }
 
-export const PARTNERS: readonly PartnerItem[] = [
+export const PARTNERS: ReadonlyArray < PartnerItem > = [
     {
         id: '1',
         name: 'LogoIpsum 1',
-        logoUrl: 'assets/logos/logoipsum1.svg'
-    }, {
+        logoUrl: '/assets/logos/logoipsum1.svg'
+    },
+    {
         id: '2',
         name: 'LogoIpsum 2',
-        logoUrl: 'assets/logos/logoipsum2.svg'
-    }, {
+        logoUrl: '/assets/logos/logoipsum2.svg'
+    },
+    {
         id: '3',
         name: 'LogoIpsum 3',
-        logoUrl: 'assets/logos/logoipsum3.svg'
-    }, {
+        logoUrl: '/assets/logos/logoipsum3.svg'
+    },
+    {
         id: '4',
         name: 'LogoIpsum 4',
-        logoUrl: 'assets/logos/logoipsum4.svg'
-    },
+        logoUrl: '/assets/logos/logoipsum4.svg'
+    }, {
+        id: '5',
+        name: 'LogoIpsum 5',
+        logoUrl: '/assets/logos/partnyor1.svg'
+    }, {
+        id: '6',
+        name: 'LogoIpsum 6',
+        logoUrl: '/assets/logos/partnyor2.svg'
+    }
 ];
 
 export interface BlogPost {
-    slug: string;
-    title: string;
-    category: string;
-    date: string;
-    imageUrl: string;
+    readonly slug: string;
+    readonly title: string;
+    readonly category: string;
+    readonly date: string;
+    readonly imageUrl: string;
 }
 
-export const LATEST_BLOGS: readonly BlogPost[] = [
+export const LATEST_BLOGS: ReadonlyArray < BlogPost > = [
     {
-        slug: 'it-ve-biznes',
-        title: 'İT və Biznes: Gələcəyin Uğur Açarı',
-        category: 'İnnovasiya',
-        date: '12 İyul 2026',
-        imageUrl: 'assets/images/blogs/blog1.jpg'
+        slug: 'penetrasiya-testi',
+        title: 'Penetrasiya (Nüfuzetmə) Testi: Kibertəhlükəsizlikdə Ən Güclü Müdafiə Vasitəsi',
+        category: 'Məhsul',
+        date: 'Jul 20, 2026',
+        imageUrl: '/assets/images/blog1.png'
     }, {
-        slug: 'bulud-texnologiyalari',
-        title: 'Bulud Texnologiyalarının Üstünlükləri',
+        slug: 'veb-saytlarda-istifadeci-tecrubesi',
+        title: 'Veb saytlarda istifadəçi təcrübəsi və interfeysi necə təkmilləşdirilməlidir',
+        category: 'Araşdırma',
+        date: 'Jul 20, 2026',
+        imageUrl: '/assets/images/blog2.png'
+    }, {
+        slug: 'texnoparkda-rezidensiya',
+        title: 'Şirkətimiz Texnoparkda 10 İllik Rezidensiya Aldı!',
         category: 'Texnologiya',
-        date: '10 İyul 2026',
-        imageUrl: 'assets/images/blogs/blog2.jpg'
-    }, {
-        slug: 'kiber-tehlukesizlik-qaydalari',
-        title: 'Kiber Təhlükəsizlikdə Əsas Qaydalar',
-        category: 'Təhlükəsizlik',
-        date: '05 İyul 2026',
-        imageUrl: 'assets/images/blogs/blog3.jpg'
-    }
+        date: 'Jul 20, 2026',
+        imageUrl: '/assets/images/blog3.png'
+    },
 ];
 
 export type StatisticCardSize = 'small' | 'large';
@@ -109,7 +145,7 @@ export interface AboutStatistic {
     readonly showPlus?: boolean;
 }
 
-export const ABOUT_STATS: readonly AboutStatistic[] = [
+export const ABOUT_STATS: ReadonlyArray < AboutStatistic > = [
     {
         value: '10',
         label: 'Layihə',
@@ -133,5 +169,5 @@ export const ABOUT_STATS: readonly AboutStatistic[] = [
         description: 'Müştərilərimizin bizə olan güvəni və məmnuniyyəti illər ərzində qurduğumuz peşəkar münasibətin nəticəsidir.',
         size: 'large',
         showPlus: true
-    }
+    },
 ];

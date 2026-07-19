@@ -90,6 +90,18 @@
     -webkit-text-fill-color: transparent;
   }
   
+  .text-gradient-hover {
+    transition: all 300ms ease;
+  }
+  .text-gradient-hover:hover,
+  .text-gradient-hover:focus-visible {
+    background: var(--gradient-primary);
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+  }
+
   .text-gradient-primary-reverse {
     background: var(--gradient-primary-reverse);
     background-clip: text;
@@ -122,6 +134,32 @@
   
   @media (prefers-reduced-motion: reduce) {
     .btn-gradient::before {
+      transition: none;
+    }
+  }
+
+  /* Service Card Hover Gradient */
+  .service-card-hover {
+    position: relative;
+    isolation: isolate;
+  }
+  .service-card-hover::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(116.58deg, rgba(0, 0, 254, 0.08) 2.1%, rgba(24, 231, 146, 0.08) 98.78%);
+    opacity: 0;
+    transition: opacity 300ms ease-in;
+    z-index: -1;
+  }
+  .service-card-hover:hover::before,
+  .service-card-hover:focus-within::before {
+    opacity: 1;
+  }
+  
+  @media (prefers-reduced-motion: reduce) {
+    .service-card-hover::before {
       transition: none;
     }
   }

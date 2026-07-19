@@ -22,12 +22,12 @@ import {CommonModule} from '@angular/common';
             <div class="flex flex-col items-start gap-6">
               <div class="inline-flex items-center gap-2 bg-white rounded-[7px] px-4 min-h-[32px] shadow-sm">
                 <img src="assets/icons/aboutIcon.svg" alt="" class="w-5 h-5 object-contain">
-                <span class="text-[16px] text-[#0A1642] leading-[20px] font-normal m-0 tracking-normal align-middle mt-[2px]">
+                <span class="text-[16px] text-[#0A1642] leading-[20px] font-normal font-bdo m-0 tracking-normal align-middle mt-[2px]">
                   Rəqəmsal inkişafınız üçün ağıllı İT həlləri
                 </span>
               </div>
               
-              <h2 class="text-[28px] md:text-[36px] leading-[1.3] font-bold text-[#0A1642] tracking-normal">
+              <h2 class="text-[28px] md:text-[36px] leading-[1.3] font-bold font-bdo text-[#0A1642] tracking-normal">
                 <span class="uppercase">QAFQAZNET 2015-Cİ İLDƏN ETİBARƏN</span> bizneslərin inkişafına dəstək olan 
                 etibarlı İT tərəfdaşıdır.<br class="hidden md:block">
                 Biz texnologiyanı sadəcə bir<br class="hidden md:block">

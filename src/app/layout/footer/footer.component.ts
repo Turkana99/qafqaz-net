@@ -1,78 +1,159 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { RouterLink } from '@angular/router';
-import { NAV_ITEMS } from '../../core/constants/navigation';
-import { IconComponent } from '../../shared/ui/icon/icon.component';
+import {ChangeDetectionStrategy, Component} from '@angular/core';
+import {RouterLink} from '@angular/router';
+
+interface FooterLink {
+    readonly label: string;
+    readonly route: string;
+}
+
+interface SocialLink {
+    readonly name: string;
+    readonly url: string;
+    readonly icon: string;
+    readonly hoverIcon?: string;
+}
+
+const FIRST_NAV_GROUP: ReadonlyArray < FooterLink > = [
+    {
+        label: 'Xidmətlər',
+        route: '/services'
+    }, {
+        label: 'Məhsullar',
+        route: '/products'
+    }, {
+        label: 'Haqqımızda',
+        route: '/company'
+    }, {
+        label: 'Maliyyə hesabatları',
+        route: '/financial-reports'
+    }
+];
+
+const SECOND_NAV_GROUP: ReadonlyArray < FooterLink > = [
+    {
+        label: 'Bloqlar',
+        route: '/blogs'
+    }, {
+        label: 'Karyera',
+        route: '/careers'
+    }, {
+        label: 'Əlaqə',
+        route: '/contact'
+    }
+];
+
+const SOCIAL_LINKS: ReadonlyArray < SocialLink > = [
+    {
+        name: 'LinkedIn',
+        url: 'https://linkedin.com',
+        icon: '/assets/icons/linkedinIcon.svg',
+        hoverIcon: '/assets/icons/linkedinHover.svg'
+    }, {
+        name: 'Instagram',
+        url: 'https://instagram.com',
+        icon: '/assets/icons/instagramIcon.svg',
+        hoverIcon: '/assets/icons/instagramHover.svg'
+    }, {
+        name: 'Facebook',
+        url: 'https://facebook.com',
+        icon: '/assets/icons/facebookIcon.svg',
+        hoverIcon: '/assets/icons/facebookHover.svg'
+    }
+];
 
 @Component({
-  selector: 'app-footer',
-  standalone: true,
-  imports: [RouterLink, IconComponent],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  template: `
-    <footer class="bg-surface-card pt-16 pb-8 border-t border-border mt-20">
+    selector: 'app-footer',
+    standalone: true,
+    imports: [RouterLink],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    template: `
+    <footer class="bg-white pt-16 pb-12 mt-20">
       <div class="container-main">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
-          <!-- Brand -->
-          <div class="lg:col-span-1">
-             <a routerLink="/" class="flex items-center gap-2 mb-6" aria-label="QafqazNet Home">
-                <span class="text-2xl font-bold text-primary-navy tracking-tight">
-                  <span class="text-accent-cyan">Q</span>afqazNet
-                </span>
-             </a>
-             <p class="text-text-secondary text-sm leading-relaxed max-w-sm">
-               Biz texnologiyanı sadəcə bir vasitə kimi deyil, biznes uğurunuzun əsas açarı kimi görürük.
-             </p>
+        
+        <!-- Upper Row: Four columns -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12 mb-20">
+          
+          <!-- First Column: Logo -->
+          <div class="flex flex-col items-start">
+            <a routerLink="/" aria-label="QafqazNet Home" class="block focus:outline-none focus-visible:ring-2 focus-visible:ring-[#4343FF] rounded">
+              <img src="/assets/logos/qafqaznet-logo.png" alt="QafqazNet Logo" class="w-[179px] h-[38px] object-contain object-left" />
+            </a>
           </div>
           
-          <!-- Quick Links -->
-          <div>
-            <h3 class="text-lg font-bold text-text-main mb-6">Keçidlər</h3>
-            <ul class="flex flex-col gap-4">
-              @for (item of navItems; track item.route) {
+          <!-- Second Column: First Navigation Group -->
+          <nav class="flex flex-col" aria-label="Footer First Navigation">
+            <ul class="flex flex-col gap-4 m-0 p-0 list-none">
+              @for (item of firstNavGroup; track item.route) {
                 <li>
-                  <a [routerLink]="item.route" class="text-text-secondary hover:text-primary-blue transition-colors">
+                  <a [routerLink]="item.route" class="font-bdo font-normal text-[16px] leading-[24px] text-[#0A1642] text-gradient-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-[#4343FF] rounded inline-block">
                     {{ item.label }}
                   </a>
                 </li>
               }
             </ul>
-          </div>
+          </nav>
 
-          <!-- Contact -->
-          <div class="lg:col-span-2">
-            <h3 class="text-lg font-bold text-text-main mb-6">Əlaqə</h3>
-            <ul class="flex flex-col gap-4">
-               <li class="flex items-start gap-3 text-text-secondary">
-                 <app-icon name="map-pin" class="text-primary-blue mt-1 shrink-0" [size]="20"></app-icon>
-                 <span>Bakı şəhəri, Nizami küçəsi 124, AF Business House</span>
-               </li>
-               <li class="flex items-center gap-3 text-text-secondary">
-                 <app-icon name="phone" class="text-primary-blue shrink-0" [size]="20"></app-icon>
-                 <span>+994 (12) 123-45-67</span>
-               </li>
-               <li class="flex items-center gap-3 text-text-secondary">
-                 <app-icon name="mail" class="text-primary-blue shrink-0" [size]="20"></app-icon>
-                 <span>info&#64;qafqaznet.az</span>
-               </li>
+          <!-- Third Column: Second Navigation Group -->
+          <nav class="flex flex-col" aria-label="Footer Second Navigation">
+            <ul class="flex flex-col gap-4 m-0 p-0 list-none">
+              @for (item of secondNavGroup; track item.route) {
+                <li>
+                  <a [routerLink]="item.route" class="font-bdo font-normal text-[16px] leading-[24px] text-[#0A1642] text-gradient-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-[#4343FF] rounded inline-block">
+                    {{ item.label }}
+                  </a>
+                </li>
+              }
             </ul>
+          </nav>
+
+          <!-- Fourth Column: Contact -->
+          <div class="flex flex-col gap-4 font-bdo font-normal text-[16px] leading-[24px] text-[#0A1642]">
+            <div>
+              Telefon: 
+              <a href="tel:+994102346464" class="text-[#0A1642] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#4343FF] rounded">+994102346464</a>,
+              <a href="tel:+994123100707" class="text-[#0A1642] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#4343FF] rounded">+994123100707</a>
+            </div>
+            <div>
+              E-poçt: 
+              <a href="mailto:office@qafqaz.net" class="text-[#0A1642] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#4343FF] rounded">office&#64;qafqaz.net</a>
+            </div>
+            <div class="break-words ">
+              Ünvan: “ÇİNAR PARK BİZNES MƏRKƏZİ” 4-cü mərtəbə
+            </div>
           </div>
+          
         </div>
         
-        <!-- Bottom -->
-        <div class="border-t border-border pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p class="text-text-secondary text-sm">
-            &copy; 2026 QafqazNet. Bütün hüquqlar qorunur.
+        <!-- Lower Row -->
+        <div class="flex flex-col-reverse md:flex-row items-start md:items-center justify-between gap-6 pt-8">
+          
+          <!-- Copyright -->
+          <p class="font-bdo font-normal text-[16px] leading-[24px] text-[#0A1642] m-0">
+            © 2026 QafqazNet. Bütün hüquqlar qorunur.
           </p>
-          <div class="flex items-center gap-6 text-text-secondary">
-             <a href="#" class="hover:text-primary-blue transition-colors" aria-label="LinkedIn"><app-icon name="linkedin" [size]="24"></app-icon></a>
-             <a href="#" class="hover:text-primary-blue transition-colors" aria-label="Facebook"><app-icon name="facebook" [size]="24"></app-icon></a>
-             <a href="#" class="hover:text-primary-blue transition-colors" aria-label="Instagram"><app-icon name="instagram" [size]="24"></app-icon></a>
+          
+          <!-- Social Media Icons -->
+          <div class="flex items-center gap-3">
+            @for (social of socialLinks; track social.name) {
+              <a [href]="social.url" target="_blank" rel="noopener noreferrer" [attr.aria-label]="social.name" class="relative group block w-[24px] h-[24px] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#4343FF] rounded">
+                @if (social.hoverIcon) {
+                  <img [src]="social.icon" [alt]="social.name + ' icon'" class="absolute inset-0 w-full h-full object-contain transition-opacity duration-300 ease-in-out group-hover:opacity-0 group-focus-visible:opacity-0" />
+                  <img [src]="social.hoverIcon" [alt]="social.name + ' hover icon'" class="absolute inset-0 w-full h-full object-contain opacity-0 transition-opacity duration-300 ease-in-out group-hover:opacity-100 group-focus-visible:opacity-100" />
+                } @else {
+                  <img [src]="social.icon" [alt]="social.name + ' icon'" class="absolute inset-0 w-full h-full object-contain" />
+                }
+              </a>
+            }
           </div>
+          
         </div>
+        
       </div>
     </footer>
   `
 })
 export class FooterComponent {
-  navItems = NAV_ITEMS;
+    firstNavGroup = FIRST_NAV_GROUP;
+    secondNavGroup = SECOND_NAV_GROUP;
+    socialLinks = SOCIAL_LINKS;
 }
