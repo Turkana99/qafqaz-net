@@ -9,16 +9,16 @@ import {RevealDirective} from '../../../../shared/ui/reveal/reveal.directive';
     imports: [RouterLink, RevealDirective],
     changeDetection: ChangeDetectionStrategy.OnPush,
     template: `
-    <section class="py-20 lg:py-32 bg-[#F7F9FC]">
+    <section class="py-12 sm:py-20 lg:py-32 bg-[#F7F9FC]">
       <div class="container-main">
         
-        <!-- Top Row: Title and Button -->
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-16">
-          <h2 appReveal revealDirection="left" class="text-[36px] md:text-[48px] lg:text-[60px] leading-[1.2] lg:leading-[60px] font-bold font-bdo text-[#0A1642] tracking-normal m-0">
+        <!-- Top Row: Title and Desktop Button -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 sm:gap-6 mb-10 sm:mb-16">
+          <h2 appReveal revealDirection="left" class="text-[28px] sm:text-[48px] lg:text-[60px] leading-[1.2] lg:leading-[60px] font-bold font-bdo text-[#0A1642] tracking-normal m-0 text-center md:text-left">
             Blog yazıları
           </h2>
           
-          <div appReveal revealDirection="right" [revealDelay]="100">
+          <div appReveal revealDirection="right" [revealDelay]="100" class="hidden md:block">
             <a
               routerLink="/blogs"
               class="group inline-flex h-[48px] shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-[12px] bg-white px-6 font-bdo text-[16px] font-medium leading-none text-[#4343FF] transition-colors duration-300 hover:text-[#0000AD] focus-visible:text-[#0000AD] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0000AD] focus-visible:ring-offset-2 shadow-sm hover:shadow"
@@ -51,27 +51,42 @@ import {RevealDirective} from '../../../../shared/ui/reveal/reveal.directive';
               </div>
               
               <!-- Content -->
-              <div class="px-2 pt-6 pb-4 flex flex-col flex-grow">
-                <h3 class="font-bdo font-bold text-[20px] md:text-[24px] leading-[1.3] md:leading-[32px] text-[#0A1642] mb-6 line-clamp-3">
+              <div class="px-2 pt-4 sm:pt-6 pb-3 sm:pb-4 flex flex-col flex-grow">
+                <h3 class="font-bdo font-bold text-[18px] sm:text-[24px] leading-[1.3] md:leading-[32px] text-[#0A1642] mb-4 sm:mb-6 line-clamp-3">
                   {{ blog.title }}
                 </h3>
                 
                 <!-- Bottom row: Badge and Date -->
-                <div class="mt-auto flex items-center gap-4">
+                <div class="mt-auto flex items-center gap-3 sm:gap-4">
                   <div 
-                    class="h-[36px] px-4 rounded-[8px] flex items-center justify-center font-bdo text-[14px] font-medium text-white"
+                    class="h-[32px] sm:h-[36px] px-3 sm:px-4 rounded-[8px] flex items-center justify-center font-bdo text-[13px] sm:text-[14px] font-medium text-white shrink-0"
                     [style.backgroundColor]="getCategoryColor(blog.category)"
                   >
                     {{ blog.category }}
                   </div>
                   
-                  <span class="font-bdo font-normal text-[16px] leading-[28px] text-[#80899D] align-middle">
+                  <span class="font-bdo font-normal text-[14px] sm:text-[16px] leading-[24px] sm:leading-[28px] text-[#80899D] align-middle">
                     {{ blog.date }}
                   </span>
                 </div>
               </div>
             </a>
           }
+        </div>
+
+        <!-- Mobile Action Button (Rendered after all blog cards) -->
+        <div appReveal revealDirection="up" [revealDelay]="300" class="mt-8 text-center md:hidden">
+          <a
+            routerLink="/blogs"
+            class="group inline-flex h-[48px] w-full items-center justify-center gap-1.5 whitespace-nowrap rounded-[12px] bg-white px-6 font-bdo text-[16px] font-medium leading-none text-[#4343FF] transition-colors duration-300 hover:text-[#0000AD] focus-visible:text-[#0000AD] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0000AD] focus-visible:ring-offset-2 shadow-sm hover:shadow"
+          >
+            <span class="font-bdo font-bold transition-colors duration-300 group-hover:text-[#0000AD] group-focus-visible:text-[#0000AD]">Daha çox göstər</span>
+            <span
+              aria-hidden="true"
+              class="h-5 w-5 bg-current transition-colors duration-300"
+              style="mask: url('/assets/icons/right.svg') no-repeat center / contain; -webkit-mask: url('/assets/icons/right.svg') no-repeat center / contain;"
+            ></span>
+          </a>
         </div>
 
       </div>

@@ -68,16 +68,16 @@ const SOCIAL_LINKS: ReadonlyArray < SocialLink > = [
     imports: [RouterLink, RevealDirective],
     changeDetection: ChangeDetectionStrategy.OnPush,
     template: `
-    <footer class="bg-white pt-16 pb-12 mt-20">
+    <footer class="bg-white pt-12 sm:pt-16 pb-8 sm:pb-12 mt-12 sm:mt-20">
       <div class="container-main">
         
         <!-- Upper Row: Four columns -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12 mb-20">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12 mb-12 sm:mb-20">
           
           <!-- First Column: Logo -->
           <div appReveal revealDirection="up" [revealDelay]="0" class="flex flex-col items-start">
             <a routerLink="/" aria-label="QafqazNet Home" class="block focus:outline-none focus-visible:ring-2 focus-visible:ring-[#4343FF] rounded">
-              <img src="/assets/logos/qafqaznet-logo.png" alt="QafqazNet Logo" class="w-[179px] h-[38px] object-contain object-left" />
+              <img src="/assets/logos/qafqaznet-logo.png" alt="QafqazNet Logo" class="w-[150px] sm:w-[179px] h-[32px] sm:h-[38px] object-contain object-left" />
             </a>
           </div>
           
@@ -126,15 +126,15 @@ const SOCIAL_LINKS: ReadonlyArray < SocialLink > = [
         </div>
         
         <!-- Lower Row -->
-        <div appReveal revealDirection="up" [revealDelay]="400" class="flex flex-col-reverse md:flex-row items-start md:items-center justify-between gap-6 pt-8 border-t border-border">
+        <div appReveal revealDirection="up" [revealDelay]="400" class="flex flex-col md:flex-row items-center justify-between gap-4 sm:gap-6 pt-8 border-t border-border text-center md:text-left">
           
           <!-- Copyright -->
-          <p class="font-bdo font-normal text-[16px] leading-[24px] text-[#0A1642] m-0">
+          <p class="font-bdo font-normal text-[16px] leading-[24px] text-[#0A1642] m-0 text-center md:text-left">
             © 2026 QafqazNet. Bütün hüquqlar qorunur.
           </p>
           
           <!-- Social Media Icons -->
-          <div class="flex items-center gap-3">
+          <div class="flex items-center justify-center gap-4">
             @for (social of socialLinks; track social.name) {
               <a [href]="social.url" target="_blank" rel="noopener noreferrer" [attr.aria-label]="social.name" class="relative group block w-[24px] h-[24px] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#4343FF] rounded">
                 @if (social.hoverIcon) {

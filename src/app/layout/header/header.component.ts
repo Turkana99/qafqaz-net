@@ -68,11 +68,11 @@ import {RevealDirective} from '../../shared/ui/reveal/reveal.directive';
           </div>
 
           <!-- Mobile Menu Button -->
-          <button class="lg:hidden p-2 mr-2 text-primary-navy focus:outline-none focus:ring-2 focus:ring-primary-blue rounded" 
+          <button class="lg:hidden p-2 mr-2 text-[#0A1642] hover:text-[#0A1642] focus:text-[#0A1642] active:text-[#0A1642] focus:outline-none focus:ring-2 focus:ring-primary-blue rounded flex items-center justify-center" 
                   (click)="toggleMenu()"
                   [attr.aria-expanded]="isMenuOpen()"
                   aria-label="Toggle Menu">
-            <app-icon [name]="isMenuOpen() ? 'close' : 'menu'" [size]="28"></app-icon>
+            <app-icon [name]="isMenuOpen() ? 'close' : 'menu'" [size]="28" color="#0A1642" class="text-[#0A1642]"></app-icon>
           </button>
         </div>
       </div>
