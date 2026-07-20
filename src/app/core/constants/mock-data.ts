@@ -181,3 +181,21 @@ export const ABOUT_STATS: ReadonlyArray<AboutStatistic> = [
     animationSequence: [100, 75, 50, 30, 15, 10, 5, 3, 2, 1],
   },
 ];
+
+export interface TargetAudienceItem {
+  readonly id: string;
+  readonly title: string;
+  readonly icon: string;
+}
+
+export const TARGET_AUDIENCES: ReadonlyArray<TargetAudienceItem> = [
+  { id: '1', title: 'Korporativ Bizneslər və Holdinqlər', icon: '/assets/icons/serv1.svg' },
+  { id: '2', title: 'Banklar və Maliyyə Qurumları', icon: '/assets/icons/serv2.svg' },
+  { id: '3', title: 'Sənaye və İstehsalat Şirkətləri', icon: '/assets/icons/serv3.svg' },
+  { id: '4', title: 'Hökumət və Dövlət Qurumları', icon: '/assets/icons/serv4.svg' },
+  { id: '5', title: 'Tibbi və Səhiyyə Müəssisələri', icon: '/assets/icons/serv5.svg' },
+  { id: '6', title: 'Təhsil və Akademik İnstitutlar', icon: '/assets/icons/serv6.svg' },
+  { id: '7', title: 'Pərakəndə Satış və Elektron Ticarət', icon: '/assets/icons/serv7.svg' },
+  { id: '8', title: 'Qeyri-kommersiya və Beynəlxalq Təşkilatlar', icon: '/assets/icons/serv8.svg' },
+  { id: '9', title: 'Startaplar və Kiçik-Orta Müəssisələr (KOB)', icon: '/assets/icons/serv9.svg' },
+];
