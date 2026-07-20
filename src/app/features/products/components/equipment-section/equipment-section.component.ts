@@ -41,22 +41,38 @@ import { RevealDirective } from '../../../../shared/ui/reveal/reveal.directive';
                       [class]="
                         selectedCategoryId() === category.id
                           ? 'font-medium text-[#18E792]'
-                          : 'font-normal text-[#80899D] group-hover:text-[#18E792]'
+                          : 'font-normal text-[#80899D] group-hover:text-[#18E792] group-focus-visible:text-[#18E792]'
                       "
                     >
                       {{ category.label }}
                     </span>
 
-                    <img
-                      [src]="
-                        selectedCategoryId() === category.id
-                          ? category.activeArrowIcon
-                          : category.defaultArrowIcon
-                      "
-                      alt=""
-                      aria-hidden="true"
-                      class="w-5 h-5 sm:w-6 sm:h-6 object-contain shrink-0 transition-transform duration-300"
-                    />
+                    <div class="relative w-5 h-5 sm:w-6 sm:h-6 shrink-0">
+                      <!-- Default Arrow Icon -->
+                      <img
+                        [src]="category.defaultArrowIcon"
+                        alt=""
+                        aria-hidden="true"
+                        class="absolute inset-0 w-full h-full object-contain transition-opacity duration-300 ease-in-out"
+                        [class]="
+                          selectedCategoryId() === category.id
+                            ? 'opacity-0'
+                            : 'opacity-100 group-hover:opacity-0 group-focus-visible:opacity-0'
+                        "
+                      />
+                      <!-- Active Green Arrow Icon -->
+                      <img
+                        [src]="category.activeArrowIcon"
+                        alt=""
+                        aria-hidden="true"
+                        class="absolute inset-0 w-full h-full object-contain transition-opacity duration-300 ease-in-out"
+                        [class]="
+                          selectedCategoryId() === category.id
+                            ? 'opacity-100'
+                            : 'opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100'
+                        "
+                      />
+                    </div>
                   </button>
                 </div>
               }

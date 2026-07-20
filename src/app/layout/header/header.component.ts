@@ -1,18 +1,30 @@
-import {ChangeDetectionStrategy, Component, HostListener, signal} from '@angular/core';
-import {RouterLink, RouterLinkActive} from '@angular/router';
-import {NAV_ITEMS} from '../../core/constants/navigation';
-import {ButtonComponent} from '../../shared/ui/button/button.component';
-import {IconComponent} from '../../shared/ui/icon/icon.component';
-import {RevealDirective} from '../../shared/ui/reveal/reveal.directive';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  HostListener,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
+import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { NAV_ITEMS } from '../../core/constants/navigation';
+import { ButtonComponent } from '../../shared/ui/button/button.component';
+import { IconComponent } from '../../shared/ui/icon/icon.component';
+import { RevealDirective } from '../../shared/ui/reveal/reveal.directive';
 
 @Component({
-    selector: 'app-header',
-    standalone: true,
-    imports: [
-        RouterLink, RouterLinkActive, ButtonComponent, IconComponent, RevealDirective
-    ],
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    template: `
+  selector: 'app-header',
+  standalone: true,
+  imports: [
+    RouterLink,
+    RouterLinkActive,
+    ButtonComponent,
+    IconComponent,
+    RevealDirective,
+  ],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  template: `
     <header class="fixed top-0 w-full z-50 transition-all duration-300" appReveal revealDirection="down" [revealDelay]="0">
       <div class="container-main py-4">
         <div class="bg-white rounded-2xl px-2 py-4 flex items-center justify-between w-full shadow-sm">
@@ -72,37 +84,53 @@ import {RevealDirective} from '../../shared/ui/reveal/reveal.directive';
                   (click)="toggleMenu()"
                   [attr.aria-expanded]="isMenuOpen()"
                   aria-label="Toggle Menu">
-            <app-icon [name]="isMenuOpen() ? 'close' : 'menu'" [size]="28" color="#0A1642" class="text-[#0A1642]"></app-icon>
+            <app-icon [name]="isMenuOpen() ? 'close' : 'menu'" [size]="28" class="text-[#0A1642]"></app-icon>
           </button>
         </div>
       </div>
 
-      <!-- Mobile Navigation Overlay -->
+      <!-- Mobile Navigation Overlay (Route-Aware Color & Contrast) -->
       @if (isMenuOpen()) {
-        <div class="fixed inset-0 bg-primary-navy/95 backdrop-blur-lg z-40 lg:hidden flex flex-col pt-24 px-6 h-screen overflow-y-auto">
-           <button class="absolute top-7 right-8 p-2 text-white focus:outline-none rounded" (click)="closeMenu()" aria-label="Close Menu">
-             <app-icon name="close" [size]="32"></app-icon>
+        <div
+          [class]="mobileOverlayClass()"
+          [style]="mobileOverlayStyle()"
+        >
+           <!-- Close Button -->
+           <button
+             [class]="mobileCloseButtonClass()"
+             (click)="closeMenu()"
+             aria-label="Close Menu"
+           >
+             <app-icon name="close" [size]="32" [class]="mobileIconClass()"></app-icon>
            </button>
+
+           <!-- Navigation List -->
            <nav class="flex flex-col gap-6 text-center mt-8" aria-label="Mobile Navigation">
              @for (item of navItems; track item.route) {
                <a [routerLink]="item.route"
                   (click)="closeMenu()"
-                  class="font-bdo font-normal text-xl leading-8 align-middle text-white hover:text-gradient-primary transition-colors">
+                  [class]="mobileNavLinkClass()"
+                  routerLinkActive="text-gradient-primary font-semibold"
+                  [routerLinkActiveOptions]="{exact: item.route === '/'}">
                  {{ item.label }}
                </a>
              }
+
+             <!-- Language Selector & Action Button -->
              <div class="mt-8 flex flex-col gap-6 items-center">
                <div class="flex gap-4">
                  @for (lang of languages; track lang) {
                    <button 
-                     class="text-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-white rounded px-2 py-1"
+                     class="text-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-[#4343FF] rounded px-2 py-1"
                      [class.text-gradient-primary]="lang === selectedLang()"
-                     [class.text-white]="lang !== selectedLang()"
+                     [class.text-white]="lang !== selectedLang() && isHomePage()"
+                     [class.text-[#0A1642]]="lang !== selectedLang() && !isHomePage()"
                      (click)="selectLanguage(lang); closeMenu()">
                      {{ lang }}
                    </button>
                  }
                </div>
+
                <app-button variant="gradient" size="nav" routerLink="/contact" trailingIcon="assets/icons/chat.svg" [fullWidth]="true" (click)="closeMenu()">
                  Konsultasiya
                </app-button>
@@ -114,52 +142,99 @@ import {RevealDirective} from '../../shared/ui/reveal/reveal.directive';
   `
 })
 export class HeaderComponent {
-    navItems = NAV_ITEMS;
-    isMenuOpen = signal(false);
+  private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
 
-    languages = ['AZ', 'EN', 'RU'] as const;
-    selectedLang = signal < typeof this.languages[number] > ('AZ');
-    isLangDropdownOpen = signal(false);
+  navItems = NAV_ITEMS;
+  isMenuOpen = signal(false);
 
-    @HostListener('document:keydown.escape')
-    onEscape() {
-        if (this.isMenuOpen()) {
-            this.closeMenu();
-        }
-        if (this.isLangDropdownOpen()) {
-            this.isLangDropdownOpen.set(false);
-        }
+  languages = ['AZ', 'EN', 'RU'] as const;
+  selectedLang = signal<typeof this.languages[number]>('AZ');
+  isLangDropdownOpen = signal(false);
+
+  readonly currentUrl = signal<string>(this.router.url);
+
+  constructor() {
+    const sub = this.router.events.subscribe((event) => {
+      if (event instanceof NavigationEnd) {
+        this.currentUrl.set(event.urlAfterRedirects || event.url);
+      }
+    });
+    this.destroyRef.onDestroy(() => sub.unsubscribe());
+  }
+
+  readonly isHomePage = computed(() => {
+    const url = this.currentUrl().split('?')[0];
+    return url === '/' || url === '';
+  });
+
+  mobileOverlayClass = computed(() => {
+    return this.isHomePage()
+      ? 'fixed inset-0 z-40 lg:hidden flex flex-col pt-24 px-6 h-screen overflow-y-auto text-white transition-all duration-300'
+      : 'fixed inset-0 z-40 lg:hidden flex flex-col pt-24 px-6 h-screen overflow-y-auto text-[#0A1642] transition-all duration-300';
+  });
+
+  mobileOverlayStyle = computed(() => {
+    return this.isHomePage()
+      ? 'background: rgba(10, 22, 66, 0.95);'
+      : 'background: rgba(255, 255, 255, 0.94); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);';
+  });
+
+  mobileCloseButtonClass = computed(() => {
+    return this.isHomePage()
+      ? 'absolute top-7 right-8 p-2 text-white focus:outline-none rounded'
+      : 'absolute top-7 right-8 p-2 text-[#0A1642] focus:outline-none rounded';
+  });
+
+  mobileIconClass = computed(() => {
+    return this.isHomePage() ? 'text-white' : 'text-[#0A1642]';
+  });
+
+  mobileNavLinkClass = computed(() => {
+    return this.isHomePage()
+      ? 'font-bdo font-normal text-xl leading-8 align-middle text-white hover:text-gradient-primary transition-colors'
+      : 'font-bdo font-normal text-xl leading-8 align-middle text-[#0A1642] hover:text-gradient-primary transition-colors';
+  });
+
+  @HostListener('document:keydown.escape')
+  onEscape() {
+    if (this.isMenuOpen()) {
+      this.closeMenu();
     }
-
-    @HostListener('document:click', ['$event'])
-    onDocumentClick(event : MouseEvent) { // If click is outside the dropdown and button, close the dropdown
-        const target = event.target as HTMLElement;
-        if (this.isLangDropdownOpen() && ! target.closest('.relative')) {
-            this.isLangDropdownOpen.set(false);
-        }
+    if (this.isLangDropdownOpen()) {
+      this.isLangDropdownOpen.set(false);
     }
+  }
 
-    toggleLangDropdown(event : Event) {
-        event.stopPropagation();
-        this.isLangDropdownOpen.update(v => !v);
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent) {
+    const target = event.target as HTMLElement;
+    if (this.isLangDropdownOpen() && !target.closest('.relative')) {
+      this.isLangDropdownOpen.set(false);
     }
+  }
 
-    selectLanguage(lang : typeof this.languages[number]) {
-        this.selectedLang.set(lang);
-        this.isLangDropdownOpen.set(false);
-    }
+  toggleLangDropdown(event: Event) {
+    event.stopPropagation();
+    this.isLangDropdownOpen.update((v) => !v);
+  }
 
-    toggleMenu() {
-        this.isMenuOpen.update(v => !v);
-        if (this.isMenuOpen()) {
-            document.body.style.overflow = 'hidden';
-        } else {
-            document.body.style.overflow = '';
-        }
-    }
+  selectLanguage(lang: typeof this.languages[number]) {
+    this.selectedLang.set(lang);
+    this.isLangDropdownOpen.set(false);
+  }
 
-    closeMenu() {
-        this.isMenuOpen.set(false);
-        document.body.style.overflow = '';
+  toggleMenu() {
+    this.isMenuOpen.update((v) => !v);
+    if (this.isMenuOpen()) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
     }
+  }
+
+  closeMenu() {
+    this.isMenuOpen.set(false);
+    document.body.style.overflow = '';
+  }
 }
