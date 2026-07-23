@@ -134,6 +134,100 @@ export const LATEST_BLOGS: ReadonlyArray < BlogPost > = [
     },
 ];
 
+export const ALL_BLOGS: ReadonlyArray < BlogPost > = [
+    {
+        slug: 'iyun-sertifikat',
+        title: 'İyun ayında İT Komandamızdan 4 Yeni Sertifikat',
+        category: 'Texnologiya',
+        date: 'Jul 20, 2026',
+        imageUrl: '/assets/images/blogMain.png'
+    },
+    {
+        slug: 'penetrasiya-testi',
+        title: 'Penetrasiya (Nüfuzetmə) Testi: Kibertəhlükəsizlikdə Ən Güclü Müdafiə Vasitəsi',
+        category: 'Məhsul',
+        date: 'Jul 20, 2026',
+        imageUrl: '/assets/images/blog1.png'
+    },
+    {
+        slug: 'veb-sayt-ui-ux',
+        title: 'Veb saytlarda istifadəçi təcrübəsi və interfeysi necə təkmilləşdirilməlidir',
+        category: 'Araşdırma',
+        date: 'Jul 20, 2026',
+        imageUrl: '/assets/images/blog2.png'
+    },
+    {
+        slug: 'texnopark-10-illik',
+        title: 'Şirkətimiz Texnoparkda 10 İllik Rezidensiya Aldı!',
+        category: 'Texnologiya',
+        date: 'Jul 20, 2026',
+        imageUrl: '/assets/images/blog3.png'
+    },
+    {
+        slug: 'tehlukesizlik-it',
+        title: 'Təhlükəsizlik Sadəcə İT-nin İşi Deyil!',
+        category: 'İcmal',
+        date: 'Jul 20, 2026',
+        imageUrl: '/assets/images/blog1.png' 
+    },
+    {
+        slug: 'it-konsaltinq-merhele',
+        title: 'İT Konsaltinq Prosesinin Əsas Mərhələləri: Biznesiniz Üçün Niyə Vacibdir?',
+        category: 'Məhsul',
+        date: 'Jul 20, 2026',
+        imageUrl: '/assets/images/blog2.png'
+    },
+    {
+        slug: 'biznesin-geleceyi-ai',
+        title: 'Biznesin Gələcəyi: Süni İntellektlə İdarəetmə',
+        category: 'Biznes',
+        date: 'Jul 18, 2026',
+        imageUrl: '/assets/images/blog3.png'
+    },
+    {
+        slug: 'kiber-huceymeler',
+        title: 'Kiber Hücumlar və Şirkətinizi Qorumağın Yolları',
+        category: 'İcmal',
+        date: 'Jul 15, 2026',
+        imageUrl: '/assets/images/blog1.png'
+    },
+    {
+        slug: 'bulud-texnologiyasi',
+        title: 'Bulud Texnologiyalarının Bizneslər Üçün Əhəmiyyəti',
+        category: 'Texnologiya',
+        date: 'Jul 12, 2026',
+        imageUrl: '/assets/images/blog2.png'
+    },
+    {
+        slug: 'elm-ve-biznes',
+        title: 'Elm və Biznesin Vəhdəti: Gələcəyin Uğur Formulu',
+        category: 'Elm',
+        date: 'Jul 10, 2026',
+        imageUrl: '/assets/images/blog3.png'
+    },
+    {
+        slug: 'reqemsal-transformasiya',
+        title: 'Şirkətlər Üçün Rəqəmsal Transformasiyanın 5 Qızıl Qaydası',
+        category: 'Araşdırma',
+        date: 'Jul 05, 2026',
+        imageUrl: '/assets/images/blog1.png'
+    },
+    {
+        slug: 'ugurlu-layihe',
+        title: 'Uğurlu İT Layihə İdarəetməsinin Sirrləri',
+        category: 'Biznes',
+        date: 'Jul 02, 2026',
+        imageUrl: '/assets/images/blog2.png'
+    },
+    {
+        slug: 'data-analitikasi',
+        title: 'Data Analitikası ilə Biznesdə Düzgün Qərarlar Almaq',
+        category: 'Elm',
+        date: 'Jul 01, 2026',
+        imageUrl: '/assets/images/blog3.png'
+    }
+];
+
 export type StatisticCardSize = 'small' | 'large';
 
 export interface AboutStatistic {
@@ -146,56 +240,118 @@ export interface AboutStatistic {
     readonly animationSequence?: readonly number[];
 }
 
-export const ABOUT_STATS: ReadonlyArray<AboutStatistic> = [
-  {
-    value: '165',
-    label: 'Layihə',
-    description:
-      'Hər bir layihə müştəri tələblərinə uyğun şəkildə planlanaraq yüksək keyfiyyətlə icra olunmuş və vaxtında uğurla təhvil verilmişdir.',
-    size: 'large',
-    showPlus: true,
-    animationSequence: [165, 145, 135, 125, 100, 80, 60, 50, 30, 10],
-  },
-  {
-    value: '20',
-    label: 'Tərəfdaş',
-    size: 'small',
-    showPlus: true,
-    animationSequence: [20, 15, 10, 5, 2, 1],
-  },
-  {
-    value: '10',
-    suffix: 'illik',
-    label: 'Təcrübə',
-    size: 'small',
-    showPlus: false,
-    animationSequence: [10, 8, 5, 3, 2, 1],
-  },
-  {
-    value: '100',
-    label: 'Müştəri',
-    description:
-      'Müştərilərimizin bizə olan güvəni və məmnuniyyəti illər ərzində qurduğumuz peşəkar münasibətin nəticəsidir.',
-    size: 'large',
-    showPlus: true,
-    animationSequence: [100, 75, 50, 30, 15, 10, 5, 3, 2, 1],
-  },
+export const ABOUT_STATS: ReadonlyArray < AboutStatistic > = [
+    {
+        value: '165',
+        label: 'Layihə',
+        description: 'Hər bir layihə müştəri tələblərinə uyğun şəkildə planlanaraq yüksək keyfiyyətlə icra olunmuş və vaxtında uğurla təhvil verilmişdir.',
+        size: 'large',
+        showPlus: true,
+        animationSequence: [
+            165,
+            145,
+            135,
+            125,
+            100,
+            80,
+            60,
+            50,
+            30,
+            10
+        ]
+    }, {
+        value: '20',
+        label: 'Tərəfdaş',
+        size: 'small',
+        showPlus: true,
+        animationSequence: [
+            20,
+            15,
+            10,
+            5,
+            2,
+            1
+        ]
+    }, {
+        value: '10',
+        suffix: 'illik',
+        label: 'Təcrübə',
+        size: 'small',
+        showPlus: false,
+        animationSequence: [
+            10,
+            8,
+            5,
+            3,
+            2,
+            1
+        ]
+    }, {
+        value: '100',
+        label: 'Müştəri',
+        description: 'Müştərilərimizin bizə olan güvəni və məmnuniyyəti illər ərzində qurduğumuz peşəkar münasibətin nəticəsidir.',
+        size: 'large',
+        showPlus: true,
+        animationSequence: [
+            100,
+            75,
+            50,
+            30,
+            15,
+            10,
+            5,
+            3,
+            2,
+            1
+        ]
+    },
 ];
 
 export interface TargetAudienceItem {
-  readonly id: string;
-  readonly title: string;
-  readonly icon: string;
+    readonly id: string;
+    readonly title: string;
+    readonly icon: string;
 }
 
-export const TARGET_AUDIENCES: ReadonlyArray<TargetAudienceItem> = [
-  { id: '1', title: 'Korporativ Bizneslər və Holdinqlər', icon: '/assets/icons/serv1.svg' },
-  { id: '2', title: 'Banklar və Maliyyə Qurumları', icon: '/assets/icons/serv2.svg' },
-  { id: '3', title: 'Sənaye və İstehsalat Şirkətləri', icon: '/assets/icons/serv3.svg' },
-  { id: '4', title: 'Hökumət və Dövlət Qurumları', icon: '/assets/icons/serv4.svg' },
-  { id: '5', title: 'Tibbi və Səhiyyə Müəssisələri', icon: '/assets/icons/serv5.svg' },
-  { id: '6', title: 'Təhsil və Akademik İnstitutlar', icon: '/assets/icons/serv6.svg' },
-  { id: '7', title: 'Pərakəndə Satış və Elektron Ticarət', icon: '/assets/icons/serv7.svg' },
-  { id: '8', title: 'Qeyri-kommersiya və Beynəlxalq Təşkilatlar', icon: '/assets/icons/serv8.svg' },
-  { id: '9', title: 'Startaplar və Kiçik-Orta Müəssisələr (KOB)', icon: '/assets/icons/serv9.svg' },
+export const TARGET_AUDIENCES: ReadonlyArray < TargetAudienceItem > = [
+    {
+        id: '1',
+        title: 'Korporativ Bizneslər və Holdinqlər',
+        icon: '/assets/icons/serv1.svg'
+    },
+    {
+        id: '2',
+        title: 'Banklar və Maliyyə Qurumları',
+        icon: '/assets/icons/serv2.svg'
+    },
+    {
+        id: '3',
+        title: 'Sənaye və İstehsalat Şirkətləri',
+        icon: '/assets/icons/serv3.svg'
+    },
+    {
+        id: '4',
+        title: 'Hökumət və Dövlət Qurumları',
+        icon: '/assets/icons/serv4.svg'
+    }, {
+        id: '5',
+        title: 'Tibbi və Səhiyyə Müəssisələri',
+        icon: '/assets/icons/serv5.svg'
+    }, {
+        id: '6',
+        title: 'Təhsil və Akademik İnstitutlar',
+        icon: '/assets/icons/serv6.svg'
+    }, {
+        id: '7',
+        title: 'Pərakəndə Satış və Elektron Ticarət',
+        icon: '/assets/icons/serv7.svg'
+    }, {
+        id: '8',
+        title: 'Qeyri-kommersiya və Beynəlxalq Təşkilatlar',
+        icon: '/assets/icons/serv8.svg'
+    }, {
+        id: '9',
+        title: 'Startaplar və Kiçik-Orta Müəssisələr (KOB)',
+        icon: '/assets/icons/serv9.svg'
+    },
 ];
