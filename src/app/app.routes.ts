@@ -47,6 +47,10 @@ export const routes: Routes = [
         loadComponent: () => import('./features/contact/pages/contact-page/contact-page.component').then(c => c.ContactPageComponent)
       },
       {
+        path: 'financial-reports',
+        loadComponent: () => import('./features/financial-reports/pages/financial-reports-page/financial-reports-page.component').then(c => c.FinancialReportsPageComponent)
+      },
+      {
         path: '**',
         loadComponent: () => import('./features/not-found/pages/not-found-page/not-found-page.component').then(c => c.NotFoundPageComponent)
       }
