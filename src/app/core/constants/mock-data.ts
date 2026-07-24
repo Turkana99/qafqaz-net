@@ -110,6 +110,7 @@ export interface BlogPost {
     readonly category: string;
     readonly date: string;
     readonly imageUrl: string;
+    readonly content?: string;
 }
 
 export const LATEST_BLOGS: ReadonlyArray < BlogPost > = [
