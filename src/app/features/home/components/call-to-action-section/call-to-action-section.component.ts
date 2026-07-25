@@ -1,7 +1,8 @@
-import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ButtonComponent } from '../../../../shared/ui/button/button.component';
 import { RevealDirective } from '../../../../shared/ui/reveal/reveal.directive';
+import { RequestModalService } from '../../../../shared/services/request-modal.service';
 
 export type CallToActionVariant = 'light' | 'dark';
 
@@ -13,7 +14,7 @@ interface TrustedCompanyLogo {
 @Component({
   selector: 'app-call-to-action-section',
   standalone: true,
-  imports: [ButtonComponent, RevealDirective, RouterLink],
+  imports: [ButtonComponent, RevealDirective],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section
@@ -74,7 +75,7 @@ interface TrustedCompanyLogo {
             <app-button
               variant="gradient"
               size="hero"
-              routerLink="/contact"
+              (click)="openModal()"
               trailingIcon="assets/icons/right.svg"
               customClass="w-full md:w-[203px]"
             >
@@ -110,6 +111,11 @@ interface TrustedCompanyLogo {
 })
 export class CallToActionSectionComponent {
   variant = input<CallToActionVariant>('light');
+  private modalService = inject(RequestModalService);
+
+  openModal() {
+    this.modalService.open();
+  }
 
   readonly trustLogos: readonly TrustedCompanyLogo[] = [
     { src: 'assets/logos/survey1.svg', alt: 'Company 1' },

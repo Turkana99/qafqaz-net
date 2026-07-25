@@ -22,7 +22,7 @@ import { RevealDirective } from '../../../../shared/ui/reveal/reveal.directive';
             
             <a
               appReveal revealDirection="right" [revealDelay]="100"
-              routerLink="/company"
+              routerLink="/partners"
               class="hidden md:inline-flex group h-[48px] shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-[12px] bg-[#F7F9FC] px-6 font-bdo text-[16px] font-medium leading-none text-[#4343FF] transition-colors duration-300 hover:text-[#0000AD] focus-visible:text-[#0000AD] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0000AD] focus-visible:ring-offset-2"
             >
               <span class="font-bdo font-bold transition-colors duration-300 group-hover:text-[#0000AD] group-focus-visible:text-[#0000AD]">20+ tərəfdaşın hamısını göstər</span>
@@ -48,7 +48,7 @@ import { RevealDirective } from '../../../../shared/ui/reveal/reveal.directive';
         <!-- Mobile Action Button (Rendered after partner logos) -->
         <div appReveal revealDirection="up" [revealDelay]="300" class="mt-8 text-center md:hidden">
           <a
-            routerLink="/company"
+            routerLink="/partners"
             class="group inline-flex h-[48px] w-full items-center justify-center gap-1.5 whitespace-nowrap rounded-[12px] bg-[#F7F9FC] px-6 font-bdo text-[16px] font-medium leading-none text-[#4343FF] transition-colors duration-300 hover:text-[#0000AD] focus-visible:text-[#0000AD] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0000AD] focus-visible:ring-offset-2"
           >
             <span class="font-bdo font-bold transition-colors duration-300 group-hover:text-[#0000AD] group-focus-visible:text-[#0000AD]">20+ tərəfdaşın hamısını göstər</span>

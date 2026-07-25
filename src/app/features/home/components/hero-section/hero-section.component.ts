@@ -17,7 +17,7 @@ interface HeroFeature {
     ],
     changeDetection: ChangeDetectionStrategy.OnPush,
     template: `
-    <section class="relative bg-primary-navy overflow-hidden min-h-screen flex items-center pt-28 lg:pt-32 pb-16 lg:pb-20 bg-cover bg-center" style="background-image: url('assets/backgrounds/hero-bg.png');">
+    <section class="relative bg-primary-navy overflow-hidden min-h-screen flex items-center pt-28 lg:pt-32 pb-16 lg:pb-20 bg-cover bg-center" style="background-image: url('assets/backgrounds/mainBg2.png');">
       <!-- Dark overlay to ensure text readability if image is too bright -->
       <div class="absolute inset-0 bg-primary-navy/40 z-0"></div>
       
@@ -46,7 +46,7 @@ interface HeroFeature {
            </div>
            
            <div appReveal revealDirection="left" [revealDelay]="1000" class="mt-10 sm:mt-14 flex items-center w-full sm:w-auto justify-start self-start">
-             <app-button variant="gradient" size="hero" routerLink="/services" trailingIcon="assets/icons/right.svg" customClass="w-full sm:w-[203px]">
+             <app-button variant="gradient" size="hero" routerLink="/company" trailingIcon="assets/icons/right.svg" customClass="w-full sm:w-[203px]">
                Ətraflı məlumat
              </app-button>
            </div>

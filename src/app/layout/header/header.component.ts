@@ -146,25 +146,7 @@ import {RevealDirective} from '../../shared/ui/reveal/reveal.directive';
 
            <!-- Navigation List -->
            <nav class="flex flex-col gap-6 text-center mt-8" aria-label="Mobile Navigation">
-             @for (item of navItems; track item.label) {
-               @if (item.children) {
-                 <div class="flex flex-col items-center gap-4">
-                   <div [class]="mobileNavLinkClass() + (isChildRouteActive(item) ? ' text-gradient-primary font-semibold' : '')">
-                     {{ item.label }}
-                   </div>
-                   <div class="flex flex-col gap-4">
-                     @for (child of item.children; track child.route) {
-                       <a [routerLink]="child.route"
-                          (click)="closeMenu()"
-                          [class]="mobileNavLinkClass()"
-                          style="font-size: 1.125rem; opacity: 0.9;"
-                          routerLinkActive="text-gradient-primary font-semibold">
-                         {{ child.label }}
-                       </a>
-                     }
-                   </div>
-                 </div>
-               } @else {
+             @for (item of mobileNavItems(); track item.label) {
                  <a [routerLink]="item.route"
                     (click)="closeMenu()"
                     [class]="mobileNavLinkClass()"
@@ -172,7 +154,6 @@ import {RevealDirective} from '../../shared/ui/reveal/reveal.directive';
                     [routerLinkActiveOptions]="{exact: item.route === '/'}">
                    {{ item.label }}
                  </a>
-               }
              }
 
              <!-- Language Selector & Action Button -->
@@ -213,6 +194,15 @@ export class HeaderComponent {
     openDropdownId = signal < string | null > (null);
 
     readonly currentUrl = signal < string > (this.router.url);
+
+    readonly mobileNavItems = computed(() => {
+        return this.navItems.flatMap(item => {
+            if (item.children) {
+                return item.children;
+            }
+            return [{ label: item.label, route: item.route! }];
+        });
+    });
 
     constructor() {
         const sub = this.router.events.subscribe((event) => {

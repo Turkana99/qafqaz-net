@@ -41,7 +41,7 @@ interface FinancialReport {
             appReveal revealDirection="up" [revealDelay]="i * 100"
             class="group w-full max-w-[1200px] mx-auto min-h-[132px] rounded-[24px] bg-[#F7F9FC] p-6 md:p-8 flex items-center transition-all duration-300 hover:bg-[#EBF0F7] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0000FE] focus-visible:ring-offset-2"
           >
-            <h3 class="font-bdo font-medium text-[20px] md:text-[24px] leading-[26px] md:leading-[30px] tracking-normal text-[#0A1642] m-0 group-hover:text-[#0000FE] transition-colors duration-300">
+            <h3 class="font-bdo font-medium text-[16px] md:text-[20px] leading-[26px] md:leading-[30px] tracking-normal text-[#0A1642] m-0 group-hover:text-[#0000FE] transition-colors duration-300">
               {{ report.title }}
             </h3>
           </a>
