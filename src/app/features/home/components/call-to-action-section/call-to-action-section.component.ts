@@ -3,6 +3,7 @@ import { RouterLink } from '@angular/router';
 import { ButtonComponent } from '../../../../shared/ui/button/button.component';
 import { RevealDirective } from '../../../../shared/ui/reveal/reveal.directive';
 import { RequestModalService } from '../../../../shared/services/request-modal.service';
+import { ParticleBackgroundComponent } from '../../../../shared/ui/particle-background/particle-background.component';
 
 export type CallToActionVariant = 'light' | 'dark';
 
@@ -14,15 +15,13 @@ interface TrustedCompanyLogo {
 @Component({
   selector: 'app-call-to-action-section',
   standalone: true,
-  imports: [ButtonComponent, RevealDirective],
+  imports: [ButtonComponent, RevealDirective, ParticleBackgroundComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <section
-      [class]="sectionClass()"
-      [style.backgroundImage]="
-        variant() === 'light' ? 'url(assets/backgrounds/surveyBackgroundImg.png)' : 'none'
-      "
-    >
+    <section [class]="sectionClass()">
+      @if (variant() === 'light') {
+        <app-particle-background />
+      }
       <div class="container-main relative z-10 w-full flex flex-col items-center">
         <!-- Mobile: Trust Button -->
         <div
@@ -127,7 +126,7 @@ export class CallToActionSectionComponent {
   sectionClass = computed(() => {
     return this.variant() === 'dark'
       ? 'py-12 sm:py-20 lg:py-32 relative overflow-hidden flex items-center justify-center bg-[#0A1642]'
-      : 'py-12 sm:py-20 lg:py-32 relative overflow-hidden flex items-center justify-center bg-white bg-cover bg-center';
+      : 'py-12 sm:py-20 lg:py-32 relative overflow-hidden flex items-center justify-center bg-white';
   });
 
   titleClass = computed(() => {

@@ -124,7 +124,7 @@ interface CompanyFact {
           <!-- Left Information Card -->
           <div 
             appReveal revealDirection="left" [revealDelay]="100"
-            class="w-full bg-[#FFFFFF] rounded-[24px] p-[32px] md:p-[42px] flex flex-col gap-[16px] shadow-[0_2px_4px_0_rgba(0,0,0,0.05)]"
+            class="w-full bg-[#FFFFFF] rounded-[24px] p-[32px] md:p-[52px] flex flex-col gap-[16px] shadow-[0_2px_4px_0_rgba(0,0,0,0.05)]"
           >
             @for (fact of companyFacts; track fact.title; let i = $index) {
               <div class="flex flex-col gap-2">
