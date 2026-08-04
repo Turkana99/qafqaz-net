@@ -19,30 +19,30 @@ import { RevealDirective } from '../reveal/reveal.directive';
       <!-- Icon Row -->
       <div class="flex items-start justify-between mb-4 sm:mb-6">
         <!-- Left Icon Box -->
-        <div
-          class="w-[44px] h-[44px] sm:w-[48px] sm:h-[48px] rounded-[12px] bg-white flex items-center justify-center shadow-[0px_2px_4px_0px_rgba(0,0,0,0.05)]"
-        >
-          <img
-            [src]="service().icon"
-            alt=""
-            aria-hidden="true"
-            class="h-5 w-5 sm:h-6 sm:w-6 object-contain"
-          />
-        </div>
-
-        <!-- Right Hover Icon Box -->
-        @if (service().hoverIcon) {
+        @if (service().iconUrl || service().icon) {
           <div
-            class="w-[44px] h-[44px] sm:w-[48px] sm:h-[48px] rounded-[12px] bg-white flex items-center justify-center shadow-[0px_2px_4px_0px_rgba(0,0,0,0.05)] opacity-0 scale-95 transition-all duration-300 ease-in group-hover:opacity-100 group-hover:scale-100 group-focus-within:opacity-100 group-focus-within:scale-100 motion-reduce:transition-none motion-reduce:scale-100"
+            class="w-[44px] h-[44px] sm:w-[48px] sm:h-[48px] rounded-[12px] bg-white flex items-center justify-center shadow-[0px_2px_4px_0px_rgba(0,0,0,0.05)]"
           >
             <img
-              [src]="service().hoverIcon"
+              [src]="service().iconUrl || service().icon"
               alt=""
               aria-hidden="true"
               class="h-5 w-5 sm:h-6 sm:w-6 object-contain"
             />
           </div>
         }
+
+        <!-- Right Hover Icon Box -->
+        <div
+          class="w-[44px] h-[44px] sm:w-[48px] sm:h-[48px] rounded-[12px] bg-white flex items-center justify-center shadow-[0px_2px_4px_0px_rgba(0,0,0,0.05)] opacity-0 scale-95 transition-all duration-300 ease-in group-hover:opacity-100 group-hover:scale-100 group-focus-within:opacity-100 group-focus-within:scale-100 motion-reduce:transition-none motion-reduce:scale-100"
+        >
+          <img
+            src="/assets/icons/serviceRightIcon.svg"
+            alt=""
+            aria-hidden="true"
+            class="h-5 w-5 sm:h-6 sm:w-6 object-contain"
+          />
+        </div>
       </div>
 
       <!-- Title -->
@@ -54,7 +54,7 @@ import { RevealDirective } from '../reveal/reveal.directive';
 
       <!-- Description -->
       <p class="text-[14px] leading-[18px] font-normal font-bdo text-[#80899D] m-0">
-        {{ service().description }}
+        {{ service().shortDescription || service().description }}
       </p>
     </a>
   `,
@@ -66,6 +66,6 @@ import { RevealDirective } from '../reveal/reveal.directive';
   `]
 })
 export class ServiceCardComponent {
-  service = input.required<ServiceItem>();
+  service = input.required<any>();
   revealDelay = input<number>(0);
 }

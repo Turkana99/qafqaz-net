@@ -12,6 +12,7 @@ import {NAV_ITEMS, NavItem} from '../../core/constants/navigation';
 import {ButtonComponent} from '../../shared/ui/button/button.component';
 import {IconComponent} from '../../shared/ui/icon/icon.component';
 import {RevealDirective} from '../../shared/ui/reveal/reveal.directive';
+import {LanguageService} from '../../core/services/language.service';
 
 @Component({
     selector: 'app-header',
@@ -184,12 +185,13 @@ import {RevealDirective} from '../../shared/ui/reveal/reveal.directive';
 export class HeaderComponent {
     private readonly router = inject(Router);
     private readonly destroyRef = inject(DestroyRef);
+    private readonly languageService = inject(LanguageService);
 
     navItems = NAV_ITEMS;
     isMenuOpen = signal(false);
 
     languages = ['AZ', 'EN', 'RU'] as const;
-    selectedLang = signal < typeof this.languages[number] > ('AZ');
+    selectedLang = this.languageService.currentLanguage;
 
     openDropdownId = signal < string | null > (null);
 
@@ -279,7 +281,7 @@ export class HeaderComponent {
     }
 
     selectLanguage(lang : typeof this.languages[number]) {
-        this.selectedLang.set(lang);
+        this.languageService.setLanguage(lang);
         this.closeDropdown();
     }
 

@@ -1,11 +1,12 @@
-import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, signal, input } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { EQUIPMENT_CATEGORIES, EquipmentCategory } from '../../data/equipment.data';
 import { RevealDirective } from '../../../../shared/ui/reveal/reveal.directive';
 
 @Component({
   selector: 'app-equipment-section',
   standalone: true,
-  imports: [RevealDirective],
+  imports: [RevealDirective, RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="py-16 sm:py-24 lg:py-32 bg-white">
@@ -28,7 +29,7 @@ import { RevealDirective } from '../../../../shared/ui/reveal/reveal.directive';
 
             <!-- Category Navigation List -->
             <div class="flex flex-col w-full">
-              @for (category of categories; track category.id; let i = $index) {
+              @for (category of dynamicCategories(); track category.id; let i = $index) {
                 <div appReveal revealDirection="left" [revealDelay]="100 + i * 60" class="w-full">
                   <button
                     type="button"
@@ -121,15 +122,16 @@ import { RevealDirective } from '../../../../shared/ui/reveal/reveal.directive';
                       class="flex items-stretch gap-3 sm:gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory no-scrollbar py-1 px-1 w-full min-w-0"
                     >
                       @for (item of group.items; track item.id) {
-                        <div
-                          class="shrink-0 snap-start bg-[#F7F9FC] rounded-[12px] p-5 sm:p-6 w-[240px] sm:w-[280px] min-h-[92px] flex items-center justify-start"
+                        <a
+                          [routerLink]="['/products', item.slug || item.id || '1']"
+                          class="shrink-0 snap-start bg-[#F7F9FC] rounded-[12px] p-5 sm:p-6 w-[240px] sm:w-[280px] min-h-[92px] flex items-center justify-start hover:bg-[#EBF0F7] transition-colors cursor-pointer"
                         >
                           <span
                             class="font-bdo font-normal text-[15px] sm:text-[16px] leading-[22px] text-[#0A1642] text-left"
                           >
                             {{ item.label }}
                           </span>
-                        </div>
+                        </a>
                       }
                     </div>
 
@@ -154,15 +156,16 @@ import { RevealDirective } from '../../../../shared/ui/reveal/reveal.directive';
                   <!-- Standard Non-Slider Grid Cards -->
                   <div class="flex flex-wrap gap-3 sm:gap-4 w-full">
                     @for (item of group.items; track item.id) {
-                      <div
-                        class="bg-[#F7F9FC] rounded-[12px] p-5 sm:p-6 w-full sm:w-[240px] lg:w-[260px] min-h-[92px] flex items-center justify-start"
+                      <a
+                        [routerLink]="['/products', item.slug || item.id || '1']"
+                        class="bg-[#F7F9FC] rounded-[12px] p-5 sm:p-6 w-full sm:w-[240px] lg:w-[260px] min-h-[92px] flex items-center justify-start hover:bg-[#EBF0F7] transition-colors cursor-pointer"
                       >
                         <span
                           class="font-bdo font-normal text-[15px] sm:text-[16px] leading-[22px] text-[#0A1642] text-left"
                         >
                           {{ item.label }}
                         </span>
-                      </div>
+                      </a>
                     }
                   </div>
                 }
@@ -186,11 +189,49 @@ import { RevealDirective } from '../../../../shared/ui/reveal/reveal.directive';
   ],
 })
 export class EquipmentSectionComponent {
-  readonly categories = EQUIPMENT_CATEGORIES;
+  readonly products = input<any[] | undefined>(undefined);
   readonly selectedCategoryId = signal<string>(EQUIPMENT_CATEGORIES[0].id);
 
+  readonly dynamicCategories = computed<EquipmentCategory[]>(() => {
+    const list = this.products();
+    if (!list || list.length === 0) return [...EQUIPMENT_CATEGORIES];
+    const categoryMap = new Map<string, any[]>();
+    list.forEach(p => {
+      const catName = p.categoryName || p.category || 'Ümumi';
+      if (!categoryMap.has(catName)) {
+        categoryMap.set(catName, []);
+      }
+      categoryMap.get(catName)!.push(p);
+    });
+    const result: EquipmentCategory[] = [];
+    let i = 0;
+    categoryMap.forEach((items, catName) => {
+      const catId = `api_cat_${i++}`;
+      result.push({
+        id: catId,
+        label: catName,
+        defaultArrowIcon: 'assets/icons/defaultArrow.svg',
+        activeArrowIcon: 'assets/icons/activeArrow.svg',
+        groups: [
+          {
+            id: `grp_${catId}`,
+            title: catName,
+            slider: items.length > 4,
+            items: items.map(it => ({
+              id: String(it.id),
+              label: it.title || it.name,
+              slug: it.slug
+            }))
+          }
+        ]
+      });
+    });
+    return result.length > 0 ? result : [...EQUIPMENT_CATEGORIES];
+  });
+
   readonly activeCategory = computed<EquipmentCategory>(() => {
-    return this.categories.find((c) => c.id === this.selectedCategoryId()) ?? this.categories[0];
+    const cats = this.dynamicCategories();
+    return cats.find((c) => c.id === this.selectedCategoryId()) ?? cats[0];
   });
 
   selectCategory(id: string): void {

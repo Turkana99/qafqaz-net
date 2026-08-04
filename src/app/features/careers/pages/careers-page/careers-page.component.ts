@@ -1,12 +1,16 @@
-import {ChangeDetectionStrategy, Component, computed, signal} from '@angular/core';
+import {ChangeDetectionStrategy, Component, computed, inject, signal, DestroyRef} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {RouterLink} from '@angular/router';
 import {RevealDirective} from '../../../../shared/ui/reveal/reveal.directive';
+import {PublicApiService} from '../../../../core/services/public-api.service';
+import {LanguageService} from '../../../../core/services/language.service';
+import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
+import {switchMap, catchError, of} from 'rxjs';
 
 interface Vacancy {
     readonly slug: string;
     readonly title: string;
-    readonly type: 'Tam ştat' | 'Yarım ştat';
+    readonly type: string;
     readonly location: string;
     readonly deadline: string;
 }
@@ -34,7 +38,7 @@ type TabType = 'Hamısı' | 'Tam ştat' | 'Yarım ştat';
           appReveal revealDirection="up" [revealDelay]="100"
           class="font-bdo font-normal text-[16px] md:text-[22px] lg:text-[20px] leading-[26px] md:leading-[32px] lg:leading-[38px] tracking-normal text-center text-[#0A1642] max-w-[900px] m-0"
         >
-          Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book.
+          Bizim komandaya qoşulmaq və sürətlə inkişaf edən İT sektorunda karyeranızı qurmaq fürsəti qazanın. Uğurun bir hissəsi olmaq üçün hazırkı vakansiyalarımızla tanış olun.
         </p>
       </div>
     </div>
@@ -121,19 +125,24 @@ type TabType = 'Hamısı' | 'Tam ştat' | 'Yarım ştat';
         </div>
 
         <!-- Pagination -->
-        @if (totalPages() > 1 || true) {
+        @if (totalPages() > 1) {
           <div 
             appReveal revealDirection="up" [revealDelay]="currentVacancies().length * 100"
             class="flex items-center justify-between mt-12 md:mt-16 w-full max-w-[1200px] mx-auto"
           >
-            <!-- Spacer to ensure the page indicator is perfectly centered -->
             <div class="w-[48px] h-[48px]">
               @if (currentPage() > 1) {
                 <button
+                  type="button"
                   (click)="prevPage()"
+                  aria-label="Previous page"
                   class="w-full h-full rounded-[12px] bg-[#F7F9FC] flex items-center justify-center transition-colors duration-300 hover:bg-[#EBF0F7] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#0000FE]"
                 >
-                  <img src="assets/icons/arrow-left.svg" alt="Previous" class="w-5 h-5 md:w-6 md:h-6 object-contain">
+                  <span
+                    aria-hidden="true"
+                    class="h-5 w-5 bg-[#0A1642] rotate-180"
+                    style="mask: url('/assets/icons/right.svg') no-repeat center / contain; -webkit-mask: url('/assets/icons/right.svg') no-repeat center / contain;"
+                  ></span>
                 </button>
               }
             </div>
@@ -145,19 +154,20 @@ type TabType = 'Hamısı' | 'Tam ştat' | 'Yarım ştat';
 
             <!-- Next Button -->
             <div class="w-[48px] h-[48px]">
-              <button
-                type="button"
-                (click)="nextPage()"
-                [disabled]="currentPage() >= totalPages()"
-                class="w-full h-full bg-[#F7F9FC] hover:bg-[#E2E8F0] text-[#0A1642] rounded-[12px] flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0A1642] disabled:opacity-50 disabled:cursor-not-allowed"
-                aria-label="Next page"
-              >
-                <span
-                  aria-hidden="true"
-                  class="h-5 w-5 bg-current"
-                  style="mask: url('/assets/icons/right.svg') no-repeat center / contain; -webkit-mask: url('/assets/icons/right.svg') no-repeat center / contain;"
-                ></span>
-              </button>
+              @if (currentPage() < totalPages()) {
+                <button
+                  type="button"
+                  (click)="nextPage()"
+                  class="w-full h-full bg-[#F7F9FC] hover:bg-[#E2E8F0] text-[#0A1642] rounded-[12px] flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0A1642]"
+                  aria-label="Next page"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="h-5 w-5 bg-current"
+                    style="mask: url('/assets/icons/right.svg') no-repeat center / contain; -webkit-mask: url('/assets/icons/right.svg') no-repeat center / contain;"
+                  ></span>
+                </button>
+              }
             </div>
           </div>
         }
@@ -167,9 +177,13 @@ type TabType = 'Hamısı' | 'Tam ştat' | 'Yarım ştat';
   `
 })
 export class CareersPageComponent {
+    private readonly apiService = inject(PublicApiService);
+    private readonly languageService = inject(LanguageService);
+    private readonly destroyRef = inject(DestroyRef);
+
     readonly tabs : readonly TabType[] = ['Hamısı', 'Tam ştat', 'Yarım ştat'];
 
-    readonly allVacancies : readonly Vacancy[] = [
+    readonly defaultVacancies : readonly Vacancy[] = [
         {
             slug: 'sebeke-administratoru',
             title: 'Şəbəkə administratoru',
@@ -197,16 +211,19 @@ export class CareersPageComponent {
         }
     ];
 
-    selectedTab = signal < TabType > ('Hamısı');
+    readonly allVacancies = signal<Vacancy[]>([...this.defaultVacancies]);
+
+    selectedTab = signal<TabType>('Hamısı');
     currentPage = signal(1);
     itemsPerPage = 10;
 
     filteredVacancies = computed(() => {
         const tab = this.selectedTab();
+        const list = this.allVacancies();
         if (tab === 'Hamısı') {
-            return this.allVacancies;
+            return list;
         }
-        return this.allVacancies.filter(v => v.type === tab);
+        return list.filter(v => v.type === tab);
     });
 
     totalPages = computed(() => Math.ceil(this.filteredVacancies().length / this.itemsPerPage) || 1);
@@ -216,9 +233,29 @@ export class CareersPageComponent {
         return this.filteredVacancies().slice(startIndex, startIndex + this.itemsPerPage);
     });
 
+    constructor() {
+      this.languageService.locale$.pipe(
+        switchMap(() => this.apiService.getVacancies(1, 100).pipe(
+          catchError(() => of(null))
+        )),
+        takeUntilDestroyed(this.destroyRef)
+      ).subscribe((res: any) => {
+        if (res && res.data && res.data.length > 0) {
+          const mapped = res.data.map((item: any) => ({
+            slug: item.slug || String(item.id),
+            title: item.title || '',
+            type: item.type || item.workType || 'Tam ştat',
+            location: item.location || 'Azərbaycan, Bakı',
+            deadline: item.deadline || item.endDate || 'Açıq'
+          }));
+          this.allVacancies.set(mapped);
+        }
+      });
+    }
+
     selectTab(tab : TabType): void {
         this.selectedTab.set(tab);
-        this.currentPage.set(1); // Reset page on tab change
+        this.currentPage.set(1);
     }
 
     nextPage(): void {

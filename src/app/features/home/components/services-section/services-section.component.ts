@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { SERVICES } from '../../../../core/constants/mock-data';
 import { RevealDirective } from '../../../../shared/ui/reveal/reveal.directive';
@@ -49,7 +49,7 @@ import { ServiceCardComponent } from '../../../../shared/ui/service-card/service
 
         <!-- Services Grid -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-          @for (service of services; track service.slug; let i = $index) {
+          @for (service of services(); track service.slug || service.id; let i = $index) {
             <app-service-card [service]="service" [revealDelay]="i * 100"></app-service-card>
           }
         </div>
@@ -75,5 +75,9 @@ import { ServiceCardComponent } from '../../../../shared/ui/service-card/service
   `
 })
 export class ServicesSectionComponent {
-  services = SERVICES;
+  items = input<any[] | undefined>(undefined);
+  readonly services = computed(() => {
+    const list = this.items();
+    return (list && list.length > 0) ? list : SERVICES;
+  });
 }

@@ -1,9 +1,13 @@
-import {ChangeDetectionStrategy, Component, signal, computed} from '@angular/core';
+import {ChangeDetectionStrategy, Component, signal, computed, inject, DestroyRef} from '@angular/core';
 import {RouterLink} from '@angular/router';
 import {CommonModule} from '@angular/common';
 import {ALL_BLOGS} from '../../../../core/constants/mock-data';
 import {RevealDirective} from '../../../../shared/ui/reveal/reveal.directive';
 import {BlogCardComponent} from '../../../../shared/ui/blog-card/blog-card.component';
+import {PublicApiService} from '../../../../core/services/public-api.service';
+import {LanguageService} from '../../../../core/services/language.service';
+import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
+import {switchMap, catchError, of, forkJoin} from 'rxjs';
 
 @Component({
     selector: 'app-blogs-page',
@@ -31,9 +35,9 @@ import {BlogCardComponent} from '../../../../shared/ui/blog-card/blog-card.compo
           
           <!-- Left: Featured Card -->
           <div appReveal revealDirection="left" [revealDelay]="100" class="w-full min-w-0">
-            @if (featuredBlog) {
+            @if (featuredBlog(); as fb) {
               <a 
-                [routerLink]="['/blogs', featuredBlog.slug]" 
+                [routerLink]="['/blogs', fb.slug]" 
                 class="group block w-full lg:h-[456px] rounded-[24px] bg-white shadow-[0_2px_4px_0_rgba(0,0,0,0.05)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#4343FF] focus-visible:ring-offset-2 hover:shadow-md transition-shadow duration-300 p-6 lg:pt-[21px] lg:pr-[21px] lg:pb-[21px] lg:pl-[48px] overflow-hidden"
               >
                 <div class="flex flex-col-reverse lg:flex-row h-full gap-6 lg:gap-10">
@@ -41,33 +45,35 @@ import {BlogCardComponent} from '../../../../shared/ui/blog-card/blog-card.compo
                   <!-- Text Content -->
                   <div class="flex flex-col justify-center flex-1 py-4 lg:py-8 min-w-0">
                     <h2 class="font-bdo font-bold text-[24px] leading-[32px] text-[#0A1642] mb-6 group-hover:text-[#4343FF] group-focus-visible:text-[#4343FF] transition-colors duration-300">
-                      {{ featuredBlog.title }}
+                      {{ fb.title }}
                     </h2>
                     <p class="font-bdo font-normal text-[16px] leading-[22px] text-[#80899D] mb-8 line-clamp-4 lg:line-clamp-none">
-                      İyun ayında komandamızın dörd üzvü beynəlxalq səviyyəli İT sertifikatları qazanaraq texniki biliklərini və peşəkar səriştələrini daha da möhkəmləndirib.
+                      {{ fb.shortDescription || fb.description || '' }}
                     </p>
                     
                     <div class="mt-auto flex flex-wrap items-center gap-3">
                       <div 
                         class="min-w-[124px] h-[36px] rounded-[8px] px-[16px] flex items-center justify-center font-bdo font-normal text-[16px] leading-[28px] text-white shrink-0"
-                        [style.backgroundColor]="getCategoryColor(featuredBlog.category)"
+                        [style.backgroundColor]="getCategoryColor(fb.categoryName || fb.category || '')"
                       >
-                        {{ featuredBlog.category }}
+                        {{ fb.categoryName || fb.category || 'İcmal' }}
                       </div>
                       <span class="font-bdo font-normal text-[16px] leading-[28px] text-[#80899D] shrink-0 whitespace-nowrap">
-                        {{ featuredBlog.date }}
+                        {{ fb.publishedAt || fb.date }}
                       </span>
                     </div>
                   </div>
 
                   <!-- Image -->
-                  <div class="w-full lg:max-w-[402px] h-[250px] lg:h-[414px] shrink-0 rounded-[12px] overflow-hidden flex-1 lg:flex-none">
-                    <img 
-                      [src]="featuredBlog.imageUrl" 
-                      [alt]="featuredBlog.title" 
-                      class="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105 group-focus-visible:scale-105"
-                    />
-                  </div>
+                  @if (fb.coverImage || fb.coverImageUrl || fb.imageUrl) {
+                    <div class="w-full lg:max-w-[402px] h-[250px] lg:h-[414px] shrink-0 rounded-[12px] overflow-hidden flex-1 lg:flex-none">
+                      <img 
+                        [src]="fb.coverImage || fb.coverImageUrl || fb.imageUrl" 
+                        [alt]="fb.title" 
+                        class="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105 group-focus-visible:scale-105"
+                      />
+                    </div>
+                  }
                   
                 </div>
               </a>
@@ -87,7 +93,7 @@ import {BlogCardComponent} from '../../../../shared/ui/blog-card/blog-card.compo
             
             <!-- News Cards -->
             <div class="flex flex-col gap-6">
-              @for (news of newsBlogs; track news.slug; let i = $index) {
+              @for (news of newsBlogs(); track news.slug; let i = $index) {
                 <a 
                   appReveal revealDirection="up" [revealDelay]="250 + (i * 100)"
                   [routerLink]="['/blogs', news.slug]" 
@@ -100,12 +106,12 @@ import {BlogCardComponent} from '../../../../shared/ui/blog-card/blog-card.compo
                   <div class="flex flex-wrap items-center gap-3 mt-auto">
                     <div 
                       class="min-w-max h-[36px] rounded-[8px] px-[16px] flex items-center justify-center font-bdo font-normal text-[16px] leading-[28px] text-white shrink-0"
-                      [style.backgroundColor]="getCategoryColor(news.category)"
+                      [style.backgroundColor]="getCategoryColor(news.categoryName || news.category || '')"
                     >
-                      {{ news.category }}
+                      {{ news.categoryName || news.category || 'İcmal' }}
                     </div>
                     <span class="font-bdo font-normal text-[16px] leading-[28px] text-[#80899D] shrink-0 whitespace-nowrap">
-                      {{ news.date }}
+                      {{ news.publishedAt || news.date }}
                     </span>
                   </div>
                 </a>
@@ -128,18 +134,18 @@ import {BlogCardComponent} from '../../../../shared/ui/blog-card/blog-card.compo
             </h2>
             
             <div appReveal revealDirection="right" [revealDelay]="100" class="flex items-center gap-1 bg-[#F7F9FC] p-[10px] rounded-[12px] overflow-x-auto mx-auto md:mx-0 w-full md:w-auto max-w-full no-scrollbar">
-              @for (tab of categories; track tab) {
+              @for (tab of categories(); track tab.id) {
                 <button 
                   type="button"
-                  (click)="selectTab(tab)"
-                  [attr.aria-selected]="selectedTab() === tab"
+                  (click)="selectTab(tab.id)"
+                  [attr.aria-selected]="selectedTab() === tab.id"
                   class="min-w-max px-4 py-2 font-bdo font-normal text-[16px] leading-[28px] rounded-[8px] transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0A1642]"
-                  [class.bg-white]="selectedTab() === tab"
-                  [class.text-[#0A1642]]="selectedTab() === tab"
-                  [class.shadow-sm]="selectedTab() === tab"
-                  [class.text-[#A0A9BD]]="selectedTab() !== tab"
+                  [class.bg-white]="selectedTab() === tab.id"
+                  [class.text-[#0A1642]]="selectedTab() === tab.id"
+                  [class.shadow-sm]="selectedTab() === tab.id"
+                  [class.text-[#A0A9BD]]="selectedTab() !== tab.id"
                 >
-                  {{ tab }}
+                  {{ tab.name }}
                 </button>
               }
             </div>
@@ -147,7 +153,7 @@ import {BlogCardComponent} from '../../../../shared/ui/blog-card/blog-card.compo
           
           <!-- Cards Grid -->
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 mb-16">
-            @for (blog of paginatedBlogs(); track blog.slug; let i = $index) {
+            @for (blog of paginatedBlogs(); track blog.slug || blog.id; let i = $index) {
               <div appReveal revealDirection="up" [revealDelay]="i * 100">
                 <app-blog-card [blog]="blog"></app-blog-card>
               </div>
@@ -197,77 +203,102 @@ import {BlogCardComponent} from '../../../../shared/ui/blog-card/blog-card.compo
   `
 })
 export class BlogsPageComponent {
-    allBlogs = ALL_BLOGS;
+    private readonly apiService = inject(PublicApiService);
+    private readonly languageService = inject(LanguageService);
+    private readonly destroyRef = inject(DestroyRef);
 
-    featuredBlog = this.allBlogs.find(b => b.slug === 'iyun-sertifikat');
-    newsBlogs = this.allBlogs.filter(b => b.slug === 'tehlukesizlik-it' || b.slug === 'it-konsaltinq-merhele');
+    allBlogsMock = ALL_BLOGS;
 
-    listBlogs = this.allBlogs.filter(b => b.slug !== 'iyun-sertifikat' && b.slug !== 'tehlukesizlik-it' && b.slug !== 'it-konsaltinq-merhele');
+    readonly featuredBlog = signal<any>(this.allBlogsMock.find(b => b.slug === 'iyun-sertifikat') || this.allBlogsMock[0]);
+    readonly newsBlogs = signal<any[]>(this.allBlogsMock.filter(b => b.slug === 'tehlukesizlik-it' || b.slug === 'it-konsaltinq-merhele'));
 
-    categories = [
-        'Hamısı',
-        'Texnologiya',
-        'Elm',
-        'İcmal',
-        'Biznes'
-    ];
-    selectedTab = signal < string > ('Hamısı');
-    currentPage = signal < number > (1);
+    readonly categories = signal<{ id: string | number; name: string }[]>([
+      { id: 'all', name: 'Hamısı' },
+      { id: 'Texnologiya', name: 'Texnologiya' },
+      { id: 'Elm', name: 'Elm' },
+      { id: 'İcmal', name: 'İcmal' },
+      { id: 'Biznes', name: 'Biznes' }
+    ]);
+    readonly selectedTab = signal<string | number>('all');
+    readonly currentPage = signal<number>(1);
 
-    filteredBlogs = computed(() => {
-        const tab = this.selectedTab();
-        if (tab === 'Hamısı') 
-            return this.listBlogs;
-        
+    readonly paginatedBlogs = signal<any[]>(this.allBlogsMock.slice(0, 6));
+    readonly totalPages = signal<number>(1);
 
+    constructor() {
+      // Reload on locale change
+      this.languageService.locale$.pipe(
+        switchMap(() => forkJoin({
+          cats: this.apiService.getBlogCategories().pipe(catchError(() => of([]))),
+          topPosts: this.apiService.getBlogs(1, 10).pipe(catchError(() => of(null))),
+        })),
+        takeUntilDestroyed(this.destroyRef)
+      ).subscribe(({ cats, topPosts }) => {
+        if (cats && cats.length > 0) {
+          this.categories.set([
+            { id: 'all', name: 'Hamısı' },
+            ...cats
+          ]);
+        }
+        if (topPosts && topPosts.data && topPosts.data.length > 0) {
+          const list = topPosts.data;
+          this.featuredBlog.set(list[0]);
+          this.newsBlogs.set(list.slice(1, 3));
+        }
+        this.loadBlogs();
+      });
+    }
 
-        return this.listBlogs.filter(b => b.category === tab);
-    });
+    loadBlogs() {
+      const catId = this.selectedTab() === 'all' ? undefined : this.selectedTab();
+      this.apiService.getBlogs(this.currentPage(), 6, catId).pipe(
+        catchError(() => of(null))
+      ).subscribe((res) => {
+        if (res && res.data) {
+          this.paginatedBlogs.set(res.data);
+          this.totalPages.set(res.meta?.total_pages || 1);
+        }
+      });
+    }
 
-    totalPages = computed(() => Math.max(1, Math.ceil(this.filteredBlogs().length / 6)));
-
-    paginatedBlogs = computed(() => {
-        const page = this.currentPage();
-        const start = (page - 1) * 6;
-        return this.filteredBlogs().slice(start, start + 6);
-    });
-
-    selectTab(tab : string) {
-        this.selectedTab.set(tab);
-        this.currentPage.set(1);
+    selectTab(tab: string | number) {
+      this.selectedTab.set(tab);
+      this.currentPage.set(1);
+      this.loadBlogs();
     }
 
     nextPage() {
-        if (this.currentPage() < this.totalPages()) {
-            this.currentPage.update(p => p + 1);
-            this.scrollToTop();
-        }
+      if (this.currentPage() < this.totalPages()) {
+        this.currentPage.update(p => p + 1);
+        this.scrollToTop();
+        this.loadBlogs();
+      }
     }
 
     prevPage() {
-        if (this.currentPage() > 1) {
-            this.currentPage.update(p => p - 1);
-            this.scrollToTop();
-        }
+      if (this.currentPage() > 1) {
+        this.currentPage.update(p => p - 1);
+        this.scrollToTop();
+        this.loadBlogs();
+      }
     }
 
     private scrollToTop() {
-        const el = document.getElementById('blog-list');
-        if (el) {
-            el.scrollIntoView({behavior: 'smooth'});
-        }
+      const el = document.getElementById('blog-list');
+      if (el) {
+        el.scrollIntoView({behavior: 'smooth'});
+      }
     }
 
-    getCategoryColor(category : string): string {
-        if (category === 'İcmal' || category.toLowerCase().includes('icmal')) {
-            return '#78D995';
-        }
-        if (category === 'Məhsul' || category.toLowerCase().includes('məhsul')) {
-            return '#FFC778';
-        }
-        if (category === 'Texnologiya' || category.toLowerCase().includes('texnologiya')) {
-            return '#82B4FF';
-        }
-        return '#E2E8F0';
+    getCategoryColor(category: string): string {
+      if (!category) return '#78D995';
+      const cat = category.toLowerCase();
+      if (cat.includes('icmal')) return '#78D995';
+      if (cat.includes('məhsul')) return '#FFC778';
+      if (cat.includes('texnologiya')) return '#82B4FF';
+      if (cat.includes('araşdırma')) return '#D5ADFF';
+      if (cat.includes('elm')) return '#48BB78';
+      if (cat.includes('biznes')) return '#63B3ED';
+      return '#78D995';
     }
 }

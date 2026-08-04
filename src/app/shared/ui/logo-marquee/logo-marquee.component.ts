@@ -27,14 +27,16 @@ export interface MarqueeLogo {
           [style.paddingRight.px]="gap()"
         >
           @for (logo of logos(); track logo.id) {
-            <div class="logo-marquee__item">
-              <img
-                [src]="logo.logoUrl"
-                [alt]="logo.name + ' logo'"
-                class="logo-marquee__logo"
-                [style.height.px]="logoHeight()"
-              />
-            </div>
+            @if (logo.logoUrl || logo.logo) {
+              <div class="logo-marquee__item">
+                <img
+                  [src]="logo.logoUrl || logo.logo"
+                  [alt]="logo.name + ' logo'"
+                  class="logo-marquee__logo"
+                  [style.height.px]="logoHeight()"
+                />
+              </div>
+            }
           }
         </div>
 
@@ -45,14 +47,16 @@ export interface MarqueeLogo {
           aria-hidden="true"
         >
           @for (logo of logos(); track logo.id) {
-            <div class="logo-marquee__item">
-              <img
-                [src]="logo.logoUrl"
-                alt=""
-                class="logo-marquee__logo"
-                [style.height.px]="logoHeight()"
-              />
-            </div>
+            @if (logo.logoUrl || logo.logo) {
+              <div class="logo-marquee__item">
+                <img
+                  [src]="logo.logoUrl || logo.logo"
+                  alt=""
+                  class="logo-marquee__logo"
+                  [style.height.px]="logoHeight()"
+                />
+              </div>
+            }
           }
         </div>
       </div>
@@ -129,7 +133,7 @@ export interface MarqueeLogo {
   `]
 })
 export class LogoMarqueeComponent {
-  logos = input.required<ReadonlyArray<MarqueeLogo>>();
+  logos = input.required<ReadonlyArray<any>>();
   duration = input<string>('18s');
   logoHeight = input<number>(40);
   gap = input<number>(56);

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 import { PARTNERS } from '../../../../core/constants/mock-data';
 import { RevealDirective } from '../../../../shared/ui/reveal/reveal.directive';
 import { LogoMarqueeComponent } from '../../../../shared/ui/logo-marquee/logo-marquee.component';
@@ -16,12 +16,16 @@ import { LogoMarqueeComponent } from '../../../../shared/ui/logo-marquee/logo-ma
         </p>
         
         <div appReveal revealDirection="right" [revealDelay]="150" class="grow min-w-0 w-full">
-          <app-logo-marquee [logos]="partners" [logoHeight]="36" [gap]="48"></app-logo-marquee>
+          <app-logo-marquee [logos]="partners()" [logoHeight]="36" [gap]="48"></app-logo-marquee>
         </div>
       </div>
     </section>
   `
 })
 export class TrustedCompaniesSectionComponent {
-  partners = PARTNERS;
+  items = input<any[] | undefined>(undefined);
+  readonly partners = computed(() => {
+    const list = this.items();
+    return (list && list.length > 0) ? list : PARTNERS;
+  });
 }

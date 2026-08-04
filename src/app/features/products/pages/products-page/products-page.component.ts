@@ -1,7 +1,11 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { switchMap, catchError, of } from 'rxjs';
 import { CallToActionSectionComponent } from '../../../home/components/call-to-action-section/call-to-action-section.component';
 import { RevealDirective } from '../../../../shared/ui/reveal/reveal.directive';
 import { EquipmentSectionComponent } from '../../components/equipment-section/equipment-section.component';
+import { PublicApiService } from '../../../../core/services/public-api.service';
+import { LanguageService } from '../../../../core/services/language.service';
 
 export interface ProductBenefit {
   readonly id: string;
@@ -108,12 +112,30 @@ export const PRODUCT_BENEFITS: ReadonlyArray<ProductBenefit> = [
     </section>
 
     <!-- 2. Equipment Categories & Product Groups Section -->
-    <app-equipment-section></app-equipment-section>
+    <app-equipment-section [products]="products()"></app-equipment-section>
 
     <!-- 3. Shared Call To Action Section -->
     <app-call-to-action-section variant="dark"></app-call-to-action-section>
   `,
 })
 export class ProductsPageComponent {
+  private readonly apiService = inject(PublicApiService);
+  private readonly languageService = inject(LanguageService);
+  private readonly destroyRef = inject(DestroyRef);
+
+  readonly products = signal<any[]>([]);
   readonly benefits = PRODUCT_BENEFITS;
+
+  constructor() {
+    this.languageService.locale$.pipe(
+      switchMap(() => this.apiService.getProducts(1, 100).pipe(
+        catchError(() => of(null))
+      )),
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe((res: any) => {
+      if (res && res.data) {
+        this.products.set(res.data);
+      }
+    });
+  }
 }

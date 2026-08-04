@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { PARTNERS } from '../../../../core/constants/mock-data';
 import { LogoMarqueeComponent } from '../../../../shared/ui/logo-marquee/logo-marquee.component';
@@ -42,7 +42,7 @@ import { RevealDirective } from '../../../../shared/ui/reveal/reveal.directive';
 
         <!-- Third Row: Continuous Partner Logos Marquee -->
         <div appReveal revealDirection="up" [revealDelay]="200" class="w-full my-4 sm:my-6">
-          <app-logo-marquee [logos]="partners" [logoHeight]="40" [gap]="56"></app-logo-marquee>
+          <app-logo-marquee [logos]="partners()" [logoHeight]="40" [gap]="56"></app-logo-marquee>
         </div>
 
         <!-- Mobile Action Button (Rendered after partner logos) -->
@@ -65,5 +65,9 @@ import { RevealDirective } from '../../../../shared/ui/reveal/reveal.directive';
   `
 })
 export class PartnersSectionComponent {
-  partners = PARTNERS;
+  items = input<any[] | undefined>(undefined);
+  readonly partners = computed(() => {
+    const list = this.items();
+    return (list && list.length > 0) ? list : PARTNERS;
+  });
 }

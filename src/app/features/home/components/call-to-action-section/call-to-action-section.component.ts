@@ -52,14 +52,17 @@ interface TrustedCompanyLogo {
 
         <!-- Main Title -->
         <h2 appReveal revealDirection="up" [revealDelay]="100" [class]="titleClass()">
-          Rəqəmsal həllərinizə buradan<br class="hidden sm:block" />
-          bizimlə başlayın
+          @if (customTitle()) {
+            {{ customTitle() }}
+          } @else {
+            Rəqəmsal həllərinizə buradan<br class="hidden sm:block" />
+            bizimlə başlayın
+          }
         </h2>
 
         <!-- Description -->
         <p appReveal revealDirection="up" [revealDelay]="150" [class]="descriptionClass()">
-          Müasir texnologiyalar və təcrübəli komanda ilə rəqəmsal transformasiyanızı
-          sürətləndiririk.
+          {{ customDescription() || 'Müasir texnologiyalar və təcrübəli komanda ilə rəqəmsal transformasiyanızı sürətləndiririk.' }}
         </p>
 
         <!-- Buttons Row (Desktop & Mobile Request Button) -->
@@ -110,6 +113,8 @@ interface TrustedCompanyLogo {
 })
 export class CallToActionSectionComponent {
   variant = input<CallToActionVariant>('light');
+  customTitle = input<string | undefined>(undefined, { alias: 'title' });
+  customDescription = input<string | undefined>(undefined, { alias: 'description' });
   private modalService = inject(RequestModalService);
 
   openModal() {

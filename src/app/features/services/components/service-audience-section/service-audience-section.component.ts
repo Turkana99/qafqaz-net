@@ -1,22 +1,10 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { RevealDirective } from '../../../../shared/ui/reveal/reveal.directive';
 
 export interface ServiceAudience {
   readonly id: string;
   readonly label: string;
 }
-
-export const SERVICE_AUDIENCES: ReadonlyArray<ServiceAudience> = [
-  { id: '1', label: 'Korporativ Bizneslər və Holdinqlər' },
-  { id: '2', label: 'Banklar və Maliyyə Qurumları' },
-  { id: '3', label: 'Sənaye və İstehsalat Şirkətləri' },
-  { id: '4', label: 'Hökumət və Dövlət Qurumları' },
-  { id: '5', label: 'Tibbi və Səhiyyə Müəssisələri' },
-  { id: '6', label: 'Təhsil və Akademik İnstitutlar' },
-  { id: '7', label: 'Pərakəndə Satış və Elektron Ticarət' },
-  { id: '8', label: 'Qeyri-Kommersiya və Beynəlxalq Təşkilatlar' },
-  { id: '9', label: 'Startaplar və Kiçik-Orta Müəssisələr (KOB)' },
-];
 
 @Component({
   selector: 'app-service-audience-section',
@@ -27,18 +15,20 @@ export const SERVICE_AUDIENCES: ReadonlyArray<ServiceAudience> = [
     <section class="py-16 sm:py-24 lg:py-28 bg-[#F7F9FC]">
       <div class="container-main">
         <!-- Section Title -->
-        <h2
-          appReveal
-          revealDirection="up"
-          [revealDelay]="0"
-          class="font-bdo font-bold text-[32px] sm:text-[48px] lg:text-[60px] leading-[1.15] lg:leading-[60px] text-[#0A1642] tracking-normal mb-8 sm:mb-12 text-left"
-        >
-          Kimlər faydalana bilər?
-        </h2>
+        @if (title()) {
+          <h2
+            appReveal
+            revealDirection="up"
+            [revealDelay]="0"
+            class="font-bdo font-bold text-[32px] sm:text-[48px] lg:text-[60px] leading-[1.15] lg:leading-[60px] text-[#0A1642] tracking-normal mb-8 sm:mb-12 text-left"
+          >
+            {{ title() }}
+          </h2>
+        }
 
         <!-- Text-Only Audience Boxes -->
         <div class="flex flex-wrap items-stretch gap-3 sm:gap-4">
-          @for (item of audiences; track item.id; let i = $index) {
+          @for (item of items(); track $index; let i = $index) {
             <div
               appReveal
               revealDirection="up"
@@ -48,7 +38,7 @@ export const SERVICE_AUDIENCES: ReadonlyArray<ServiceAudience> = [
               <span
                 class="font-bdo font-normal text-[15px] sm:text-[16px] leading-[1.3] text-[#0A1642] text-left"
               >
-                {{ item.label }}
+                {{ item }}
               </span>
             </div>
           }
@@ -58,5 +48,6 @@ export const SERVICE_AUDIENCES: ReadonlyArray<ServiceAudience> = [
   `,
 })
 export class ServiceAudienceSectionComponent {
-  readonly audiences = SERVICE_AUDIENCES;
+  readonly title = input<string>('Kimlər faydalana bilər?');
+  readonly items = input<string[]>([]);
 }

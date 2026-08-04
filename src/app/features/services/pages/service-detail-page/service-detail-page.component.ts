@@ -1,12 +1,16 @@
-import {ChangeDetectionStrategy, Component, computed, inject} from '@angular/core';
+import {ChangeDetectionStrategy, Component, computed, inject, signal, DestroyRef} from '@angular/core';
 import {CommonModule} from '@angular/common';
-import {toSignal} from '@angular/core/rxjs-interop';
 import {ActivatedRoute, RouterLink} from '@angular/router';
+import {Title, Meta} from '@angular/platform-browser';
 import {RevealDirective} from '../../../../shared/ui/reveal/reveal.directive';
 import {CallToActionSectionComponent} from '../../../home/components/call-to-action-section/call-to-action-section.component';
-import {map} from 'rxjs/operators';
 import {SERVICES} from '../../../../core/constants/mock-data';
 import {RequestModalService} from '../../../../shared/services/request-modal.service';
+import {PublicApiService} from '../../../../core/services/public-api.service';
+import {LanguageService} from '../../../../core/services/language.service';
+import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
+import {switchMap, catchError, of, combineLatest} from 'rxjs';
+import {ResolveMediaUrlPipe} from '../../../../core/utils/media.helper';
 
 @Component({
     selector: 'app-service-detail-page',
@@ -16,7 +20,7 @@ import {RequestModalService} from '../../../../shared/services/request-modal.ser
     ],
     changeDetection: ChangeDetectionStrategy.OnPush,
     template: `
-    @if (service()) {
+    @if (service(); as item) {
       <!-- Hero Section -->
       <section class="w-full bg-[#F7F9FC] pt-[180px] pb-16 lg:pb-32">
         <div class="container-main">
@@ -28,14 +32,14 @@ import {RequestModalService} from '../../../../shared/services/request-modal.ser
                 appReveal revealDirection="left" [revealDelay]="0"
                 class="font-bdo font-bold text-[36px] md:text-[48px] lg:text-[60px] leading-[44px] md:leading-[58px] lg:leading-[65px] tracking-normal text-[#0A1642] mb-6"
               >
-                {{ service()!.title }}
+                {{ item.title }}
               </h1>
               
               <p 
                 appReveal revealDirection="left" [revealDelay]="100"
                 class="font-bdo font-normal text-[16px] leading-[26px] text-[#80899D] mb-10 lg:mb-12"
               >
-                Server otaqları və data mərkəzləri müəssisənin informasiya texnologiyaları sistemlərinin təhlükəsiz və fasiləsiz fəaliyyətini təmin edən əsas mərkəzlərdir. Şirkətimiz beynəlxalq standartlara uyğun, çevik və dayanıqlı İT infrastrukturu yaratmaq üçün kompleks həllər təqdim edir.
+                {{ item.shortDescription || item.description || defaultDesc }}
               </p>
               
               <button 
@@ -53,9 +57,11 @@ import {RequestModalService} from '../../../../shared/services/request-modal.ser
               appReveal revealDirection="right" [revealDelay]="100"
               class="w-full lg:w-auto flex justify-center lg:justify-end shrink-0"
             >
-              <div class="w-[360px] h-[360px] bg-[#FFFFFF] rounded-[32px] p-[36px] shadow-[0_2px_4px_0_rgba(0,0,0,0.05)] flex items-center justify-center">
-                <img [src]="service()!.icon" [alt]="service()!.title" class="w-[256px] h-[256px] object-contain">
-              </div>
+              @if (item.iconUrl) {
+                <div class="w-[360px] h-[360px] bg-[#FFFFFF] rounded-[32px] p-[36px] shadow-[0_2px_4px_0_rgba(0,0,0,0.05)] flex items-center justify-center">
+                  <img [src]="item.iconUrl" [alt]="item.title" class="w-[256px] h-[256px] object-contain">
+                </div>
+              }
             </div>
 
           </div>
@@ -66,6 +72,28 @@ import {RequestModalService} from '../../../../shared/services/request-modal.ser
       <section class="w-full bg-[#FFFFFF] pt-12 lg:pt-16 pb-16 lg:pb-32">
         <div class="container-main">
           <div class="w-full flex flex-col items-start text-left">
+            @if (item.coverImageUrl) {
+              <div class="w-full max-w-[1200px] mb-12 rounded-[24px] overflow-hidden">
+                <img [src]="item.coverImageUrl" [alt]="item.title" class="w-full h-auto object-cover" />
+              </div>
+            }
+
+            @if (item.features && item.features.length) {
+              <div class="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+                @for (feature of item.features; track $index) {
+                  <div class="p-6 bg-[#F7F9FC] rounded-[24px] flex flex-col items-start gap-4">
+                    @if (feature.icon) {
+                      <img [src]="feature.icon" [alt]="feature.title" class="w-12 h-12 object-contain" />
+                    }
+                    <h3 class="font-bdo font-bold text-[20px] text-[#0A1642]">{{ feature.title }}</h3>
+                    @if (feature.description) {
+                      <p class="font-bdo text-[16px] text-[#80899D]">{{ feature.description }}</p>
+                    }
+                  </div>
+                }
+              </div>
+            }
+
             <h2 
               appReveal revealDirection="up" [revealDelay]="0"
               class="font-bdo font-bold text-[28px] md:text-[36px] leading-[36px] md:leading-[42px] tracking-normal text-[#0A1642] mb-8"
@@ -76,7 +104,7 @@ import {RequestModalService} from '../../../../shared/services/request-modal.ser
             <div 
               appReveal revealDirection="up" [revealDelay]="100"
               class="w-full rich-text-content"
-              [innerHTML]="mockContent"
+              [innerHTML]="item.content || mockContent"
             ></div>
           </div>
         </div>
@@ -182,24 +210,17 @@ import {RequestModalService} from '../../../../shared/services/request-modal.ser
   `]
 })
 export class ServiceDetailPageComponent {
-    private route = inject(ActivatedRoute);
-    private modalService = inject(RequestModalService);
+    private readonly route = inject(ActivatedRoute);
+    private readonly modalService = inject(RequestModalService);
+    private readonly apiService = inject(PublicApiService);
+    private readonly languageService = inject(LanguageService);
+    private readonly titleService = inject(Title);
+    private readonly metaService = inject(Meta);
+    private readonly destroyRef = inject(DestroyRef);
 
-    slug = toSignal(this.route.paramMap.pipe(map(params => params.get('slug'))));
+    readonly service = signal<any | undefined>(undefined);
 
-    openModal() {
-        this.modalService.open();
-    }
-
-    service = computed(() => {
-        const s = this.slug();
-        if (! s) 
-            return undefined;
-        
-
-
-        return SERVICES.find(v => v.slug === s);
-    });
+    readonly defaultDesc = 'Server otaqları və data mərkəzləri müəssisənin informasiya texnologiyaları sistemlərinin təhlükəsiz və fasiləsiz fəaliyyətini təmin edən əsas mərkəzlərdir. Şirkətimiz beynəlxalq standartlara uyğun, çevik və dayanıqlı İT infrastrukturu yaratmaq üçün kompleks həllər təqdim edir.';
 
     readonly mockContent = `
     <h2>1. Tələblərin Təhlili və Layihələndirmə</h2>
@@ -248,4 +269,38 @@ export class ServiceDetailPageComponent {
     
     <p>Server otaqlarınızı və data mərkəzinizi beynəlxalq standartlara uyğun şəkildə dizayn edib, sıfırdan inşa edək.</p>
   `;
+
+    constructor() {
+        combineLatest([
+            this.route.paramMap,
+            this.languageService.locale$
+        ]).pipe(
+            switchMap(([params]) => {
+                const slug = params.get('slug');
+                if (!slug) return of(null);
+                return this.apiService.getServiceBySlug(slug).pipe(
+                    catchError(() => {
+                        const mock = SERVICES.find(v => v.slug === slug);
+                        return of(mock || null);
+                    })
+                );
+            }),
+            takeUntilDestroyed(this.destroyRef)
+        ).subscribe((serv: any) => {
+            this.service.set(serv);
+            if (serv) {
+                const pageTitle = serv.metaTitle || serv.title || 'QafqazNet Xidmətlər';
+                this.titleService.setTitle(pageTitle);
+
+                const desc = serv.metaDescription || serv.shortDescription || serv.description || '';
+                if (desc) {
+                    this.metaService.updateTag({ name: 'description', content: desc });
+                }
+            }
+        });
+    }
+
+    openModal() {
+        this.modalService.open();
+    }
 }

@@ -8,6 +8,7 @@ import {
 import {CommonModule} from '@angular/common';
 import {FormBuilder, ReactiveFormsModule, Validators} from '@angular/forms';
 import {ButtonComponent} from '../../../../shared/ui/button/button.component';
+import {PublicApiService} from '../../../../core/services/public-api.service';
 
 @Component({
     selector: 'app-contact-page',
@@ -67,14 +68,50 @@ import {ButtonComponent} from '../../../../shared/ui/button/button.component';
         <div class="flex h-full w-full items-center bg-white p-8 md:p-12 lg:py-[64px]">
             <form [formGroup]="contactForm" (ngSubmit)="onSubmit()" class="mx-auto flex w-full max-w-[596px] flex-col gap-[24px]">
 
-                <input type="text" formcontrolname="fullName" placeholder="Ad və soyadınızı daxil edin" class="w-full h-[48px] rounded-[10px] bg-[#F7F9FC] border border-transparent px-[16px] font-bdo font-normal text-[16px] leading-[48px] text-[#0A1642] placeholder:text-[#80899D] focus:outline-none focus:border-[#4343FF] focus:ring-1 focus:ring-[#4343FF] transition-all" [class.border-red-500]="contactForm.get('fullName')?.invalid && contactForm.get('fullName')?.touched">
+                <!-- Success Alert -->
+                @if (successMessage()) {
+                  <div class="p-4 rounded-[12px] bg-green-50 border border-green-200 text-green-800 font-bdo text-[15px] flex items-center gap-2">
+                    <svg class="w-5 h-5 shrink-0 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                    </svg>
+                    <span>{{ successMessage() }}</span>
+                  </div>
+                }
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-[18px] w-full">
-                    <input type="email" formcontrolname="email" placeholder="Emailinizi daxil edin" class="w-full h-[48px] rounded-[10px] bg-[#F7F9FC] border border-transparent px-[16px] font-bdo font-normal text-[16px] leading-[48px] text-[#0A1642] placeholder:text-[#80899D] focus:outline-none focus:border-[#4343FF] focus:ring-1 focus:ring-[#4343FF] transition-all" [class.border-red-500]="contactForm.get('email')?.invalid && contactForm.get('email')?.touched">
-                    <input type="tel" formcontrolname="phone" placeholder="Telefon nömrəniz" class="w-full h-[48px] rounded-[10px] bg-[#F7F9FC] border border-transparent px-[16px] font-bdo font-normal text-[16px] leading-[48px] text-[#0A1642] placeholder:text-[#80899D] focus:outline-none focus:border-[#4343FF] focus:ring-1 focus:ring-[#4343FF] transition-all" [class.border-red-500]="contactForm.get('phone')?.invalid && contactForm.get('phone')?.touched">
+                <!-- Error Alert -->
+                @if (errorMessage()) {
+                  <div class="p-4 rounded-[12px] bg-red-50 border border-red-200 text-red-800 font-bdo text-[15px] flex items-center gap-2">
+                    <svg class="w-5 h-5 shrink-0 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                    </svg>
+                    <span>{{ errorMessage() }}</span>
+                  </div>
+                }
+
+                <div class="flex flex-col gap-1">
+                  <input type="text" formControlName="fullName" placeholder="Ad və soyadınızı daxil edin" class="w-full h-[48px] rounded-[10px] bg-[#F7F9FC] border border-transparent px-[16px] font-bdo font-normal text-[16px] leading-[48px] text-[#0A1642] placeholder:text-[#80899D] focus:outline-none focus:border-[#4343FF] focus:ring-1 focus:ring-[#4343FF] transition-all" [class.border-red-500]="contactForm.get('fullName')?.invalid && contactForm.get('fullName')?.touched">
+                  @if (contactForm.get('fullName')?.invalid && contactForm.get('fullName')?.touched) {
+                    <span class="text-red-500 font-bdo text-[13px]">Zəhmət olmasa ad və soyadınızı daxil edin</span>
+                  }
                 </div>
 
-                <div class="relative w-full" (click)="$event.stopPropagation()">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-[18px] w-full">
+                  <div class="flex flex-col gap-1">
+                    <input type="email" formControlName="email" placeholder="Emailinizi daxil edin" class="w-full h-[48px] rounded-[10px] bg-[#F7F9FC] border border-transparent px-[16px] font-bdo font-normal text-[16px] leading-[48px] text-[#0A1642] placeholder:text-[#80899D] focus:outline-none focus:border-[#4343FF] focus:ring-1 focus:ring-[#4343FF] transition-all" [class.border-red-500]="contactForm.get('email')?.invalid && contactForm.get('email')?.touched">
+                    @if (contactForm.get('email')?.invalid && contactForm.get('email')?.touched) {
+                      <span class="text-red-500 font-bdo text-[13px]">Düzgün email ünvanı daxil edin</span>
+                    }
+                  </div>
+                  <div class="flex flex-col gap-1">
+                    <input type="tel" formControlName="phone" placeholder="Telefon nömrəniz" class="w-full h-[48px] rounded-[10px] bg-[#F7F9FC] border border-transparent px-[16px] font-bdo font-normal text-[16px] leading-[48px] text-[#0A1642] placeholder:text-[#80899D] focus:outline-none focus:border-[#4343FF] focus:ring-1 focus:ring-[#4343FF] transition-all" [class.border-red-500]="contactForm.get('phone')?.invalid && contactForm.get('phone')?.touched">
+                    @if (contactForm.get('phone')?.invalid && contactForm.get('phone')?.touched) {
+                      <span class="text-red-500 font-bdo text-[13px]">Telefon nömrəsi tələb olunur</span>
+                    }
+                  </div>
+                </div>
+
+                <div class="flex flex-col gap-1">
+                  <div class="relative w-full" (click)="$event.stopPropagation()">
                     <div tabindex="0" (click)="toggleDropdown($event)" (keydown)="onDropdownKeydown($event)" class="w-full h-[48px] rounded-[10px] bg-[#F7F9FC] border border-transparent px-[16px] flex items-center justify-between font-bdo font-normal text-[16px] focus:outline-none focus:border-[#4343FF] focus:ring-1 focus:ring-[#4343FF] transition-all cursor-pointer" [class.text-[#0A1642]]="contactForm.get('service')?.value" [class.text-[#80899D]]="!contactForm.get('service')?.value" [class.border-red-500]="contactForm.get('service')?.invalid && contactForm.get('service')?.touched">
                         <span>{{ getSelectedServiceLabel() || 'Xidmət seçin' }}</span>
                         <img src="assets/icons/dropdownIcon.svg" alt="Dropdown" class="w-3 h-3 transition-transform" [class.rotate-180]="isDropdownOpen()">
@@ -85,13 +122,30 @@ import {ButtonComponent} from '../../../../shared/ui/button/button.component';
                             {{ option.label }}
                         </div>
                     </div>
+                  </div>
+                  @if (contactForm.get('service')?.invalid && contactForm.get('service')?.touched) {
+                    <span class="text-red-500 font-bdo text-[13px]">Zəhmət olmasa xidmət seçin</span>
+                  }
                 </div>
 
-                <textarea formcontrolname="message" placeholder="Şirkətiniz haqqında qısa məlumat" class="w-full h-[102px] rounded-[10px] bg-[#F7F9FC] border border-transparent px-[16px] pt-[13px] pb-[13px] font-bdo font-normal text-[16px] leading-[140%] text-[#0A1642] placeholder:text-[#80899D] focus:outline-none focus:border-[#4343FF] focus:ring-1 focus:ring-[#4343FF] transition-all resize-none" [class.border-red-500]="contactForm.get('message')?.invalid && contactForm.get('message')?.touched"></textarea>
+                <div class="flex flex-col gap-1">
+                  <input type="text" formControlName="subject" placeholder="Mövzu (üfunət, əməkdaşlıq və s.)" class="w-full h-[48px] rounded-[10px] bg-[#F7F9FC] border border-transparent px-[16px] font-bdo font-normal text-[16px] leading-[48px] text-[#0A1642] placeholder:text-[#80899D] focus:outline-none focus:border-[#4343FF] focus:ring-1 focus:ring-[#4343FF] transition-all">
+                </div>
 
-                <div class="mt-2 w-full" [class.opacity-50]="contactForm.invalid" [class.cursor-not-allowed]="contactForm.invalid">
-                    <app-button type="submit" variant="gradient" size="nav" [fullWidth]="true" [disabled]="contactForm.invalid">
-                        Göndər
+                <div class="flex flex-col gap-1">
+                  <textarea formControlName="message" placeholder="Şirkətiniz haqqında qısa məlumat və ya mesajınız" class="w-full h-[102px] rounded-[10px] bg-[#F7F9FC] border border-transparent px-[16px] pt-[13px] pb-[13px] font-bdo font-normal text-[16px] leading-[140%] text-[#0A1642] placeholder:text-[#80899D] focus:outline-none focus:border-[#4343FF] focus:ring-1 focus:ring-[#4343FF] transition-all resize-none" [class.border-red-500]="contactForm.get('message')?.invalid && contactForm.get('message')?.touched"></textarea>
+                  @if (contactForm.get('message')?.invalid && contactForm.get('message')?.touched) {
+                    <span class="text-red-500 font-bdo text-[13px]">Zəhmət olmasa mesajınızı daxil edin</span>
+                  }
+                </div>
+
+                <div class="mt-2 w-full" [class.opacity-50]="contactForm.invalid || isSubmitting()" [class.cursor-not-allowed]="contactForm.invalid || isSubmitting()">
+                    <app-button type="submit" variant="gradient" size="nav" [fullWidth]="true" [disabled]="contactForm.invalid || isSubmitting()">
+                        @if (isSubmitting()) {
+                          Göndərilir...
+                        } @else {
+                          Göndər
+                        }
                     </app-button>
                 </div>
 
@@ -103,10 +157,11 @@ import {ButtonComponent} from '../../../../shared/ui/button/button.component';
   `
 })
 export class ContactPageComponent {
-    private fb = inject(FormBuilder);
+    private readonly fb = inject(FormBuilder);
+    private readonly apiService = inject(PublicApiService);
 
-    isDropdownOpen = signal(false);
-    serviceOptions = [
+    readonly isDropdownOpen = signal(false);
+    readonly serviceOptions = [
         {
             value: 'it-consulting',
             label: 'İT Konsaltinq'
@@ -121,9 +176,13 @@ export class ContactPageComponent {
             label: 'Kiber Təhlükəsizlik'
         }
     ];
-    focusedOptionIndex = signal(-1);
+    readonly focusedOptionIndex = signal(-1);
 
-    contactForm = this.fb.group({
+    readonly isSubmitting = signal(false);
+    readonly successMessage = signal<string | null>(null);
+    readonly errorMessage = signal<string | null>(null);
+
+    readonly contactForm = this.fb.group({
         fullName: [
             '',
             [Validators.required]
@@ -142,6 +201,7 @@ export class ContactPageComponent {
             '',
             [Validators.required]
         ],
+        subject: [''],
         message: [
             '',
             [Validators.required]
@@ -149,38 +209,38 @@ export class ContactPageComponent {
     });
 
     getSelectedServiceLabel(): string {
-        const value = this.contactForm.get('service') ?. value;
+        const value = this.contactForm.get('service')?.value;
         const option = this.serviceOptions.find(o => o.value === value);
         return option ? option.label : '';
     }
 
-    toggleDropdown(event : Event) {
+    toggleDropdown(event: Event) {
         event.stopPropagation();
         this.isDropdownOpen.update(v => !v);
         if (this.isDropdownOpen()) {
-            const currentVal = this.contactForm.get('service') ?. value;
+            const currentVal = this.contactForm.get('service')?.value;
             const idx = this.serviceOptions.findIndex(o => o.value === currentVal);
             this.focusedOptionIndex.set(idx >= 0 ? idx : 0);
         }
     }
 
-    selectOption(value : string) {
+    selectOption(value: string) {
         this.contactForm.patchValue({service: value});
-        this.contactForm.get('service') ?. markAsTouched();
+        this.contactForm.get('service')?.markAsTouched();
         this.isDropdownOpen.set(false);
     }
 
     @HostListener('document:click', ['$event'])
-    closeDropdown(event : Event) {
+    closeDropdown(event: Event) {
         this.isDropdownOpen.set(false);
     }
 
-    onDropdownKeydown(event : KeyboardEvent) {
+    onDropdownKeydown(event: KeyboardEvent) {
         if (!this.isDropdownOpen()) {
             if (event.key === 'Enter' || event.key === ' ' || event.key === 'ArrowDown') {
                 event.preventDefault();
                 this.isDropdownOpen.set(true);
-                const currentVal = this.contactForm.get('service') ?. value;
+                const currentVal = this.contactForm.get('service')?.value;
                 const idx = this.serviceOptions.findIndex(o => o.value === currentVal);
                 this.focusedOptionIndex.set(idx >= 0 ? idx : 0);
             }
@@ -212,11 +272,35 @@ export class ContactPageComponent {
     }
 
     onSubmit() {
-        if (this.contactForm.valid) {
-            console.log('Form submitted', this.contactForm.value);
-            this.contactForm.reset();
-        } else {
+        if (this.contactForm.invalid) {
             this.contactForm.markAllAsTouched();
+            return;
         }
+
+        this.isSubmitting.set(true);
+        this.successMessage.set(null);
+        this.errorMessage.set(null);
+
+        const formVal = this.contactForm.value;
+        const payload = {
+          fullName: formVal.fullName || '',
+          email: formVal.email || '',
+          phone: formVal.phone || '',
+          service: formVal.service || '',
+          subject: formVal.subject || this.getSelectedServiceLabel() || 'Saytdan mesaj',
+          message: formVal.message || ''
+        };
+
+        this.apiService.sendContactMessage(payload).subscribe({
+          next: () => {
+            this.isSubmitting.set(false);
+            this.successMessage.set('Mesajınız uğurla göndərildi. Təşəkkür edirik!');
+            this.contactForm.reset();
+          },
+          error: () => {
+            this.isSubmitting.set(false);
+            this.errorMessage.set('Mesaj göndərilərkən xəta baş verdi. Zəhmət olmasa, yenidən cəhd edin.');
+          }
+        });
     }
 }

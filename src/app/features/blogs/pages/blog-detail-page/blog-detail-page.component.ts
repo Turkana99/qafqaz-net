@@ -1,11 +1,14 @@
-import {ChangeDetectionStrategy, Component, computed, inject} from '@angular/core';
+import {ChangeDetectionStrategy, Component, computed, inject, signal, DestroyRef} from '@angular/core';
 import {CommonModule} from '@angular/common';
-import {toSignal} from '@angular/core/rxjs-interop';
 import {ActivatedRoute, RouterLink} from '@angular/router';
-import {ALL_BLOGS, BlogPost} from '../../../../core/constants/mock-data';
+import {Title, Meta} from '@angular/platform-browser';
+import {ALL_BLOGS} from '../../../../core/constants/mock-data';
 import {RevealDirective} from '../../../../shared/ui/reveal/reveal.directive';
 import {BlogCardComponent} from '../../../../shared/ui/blog-card/blog-card.component';
-import {map} from 'rxjs/operators';
+import {PublicApiService} from '../../../../core/services/public-api.service';
+import {LanguageService} from '../../../../core/services/language.service';
+import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
+import {switchMap, catchError, of, combineLatest} from 'rxjs';
 
 @Component({
     selector: 'app-blog-detail-page',
@@ -15,7 +18,7 @@ import {map} from 'rxjs/operators';
     ],
     changeDetection: ChangeDetectionStrategy.OnPush,
     template: `
-    @if (blog()) {
+    @if (blog(); as item) {
       <!-- Top Section with Blur -->
       <div class="bg-[#F7F9FC] backdrop-blur-[50px] pt-[180px]  w-full">
         <div class="container-main flex flex-col items-center">
@@ -27,12 +30,12 @@ import {map} from 'rxjs/operators';
           >
             <div 
               class="min-w-[124px] h-[36px] rounded-[8px] px-[16px] flex items-center justify-center font-bdo font-normal text-[16px] leading-[28px] text-white shrink-0"
-              [style.backgroundColor]="getCategoryColor(blog()!.category)"
+              [style.backgroundColor]="getCategoryColor(item.categoryName || item.category || '')"
             >
-              {{ blog()!.category }}
+              {{ item.categoryName || item.category || 'İcmal' }}
             </div>
             <span class="font-bdo font-normal text-[16px] leading-[28px] text-[#80899D] shrink-0 whitespace-nowrap">
-              {{ blog()!.date }}
+              {{ item.publishedAt || item.date }}
             </span>
           </div>
 
@@ -41,20 +44,22 @@ import {map} from 'rxjs/operators';
             appReveal revealDirection="up" [revealDelay]="100"
             class="font-bdo font-bold text-[36px] md:text-[48px] lg:text-[60px] leading-[44px] md:leading-[58px] lg:leading-[70px] tracking-normal text-center text-[#0A1642] max-w-[1000px] m-0 mb-12"
           >
-            {{ blog()!.title }}
+            {{ item.title }}
           </h1>
 
           <!-- Main Image -->
-          <div 
-            appReveal revealDirection="up" [revealDelay]="200"
-            class="w-full max-w-[1200px] h-[300px] md:h-[450px] lg:h-[600px] rounded-tl-[24px] rounded-tr-[24px] overflow-hidden"
-          >
-            <img 
-              [src]="blog()!.imageUrl" 
-              [alt]="blog()!.title" 
-              class="w-full h-full object-cover"
-            />
-          </div>
+          @if (item.coverImage || item.coverImageUrl || item.imageUrl) {
+            <div 
+              appReveal revealDirection="up" [revealDelay]="200"
+              class="w-full max-w-[1200px] h-[300px] md:h-[450px] lg:h-[600px] rounded-tl-[24px] rounded-tr-[24px] overflow-hidden"
+            >
+              <img 
+                [src]="item.coverImage || item.coverImageUrl || item.imageUrl" 
+                [alt]="item.title" 
+                class="w-full h-full object-cover"
+              />
+            </div>
+          }
         </div>
       </div>
 
@@ -67,7 +72,7 @@ import {map} from 'rxjs/operators';
           <!-- Rich text body rendering -->
           <div 
             class="font-bdo text-[16px] leading-[1.6] text-[#0A1642] prose prose-lg max-w-none prose-headings:text-[#0A1642] prose-headings:font-bdo prose-headings:font-bold prose-a:text-[#4343FF]"
-            [innerHTML]="blog()!.content || defaultContent"
+            [innerHTML]="item.content || item.body || defaultContent"
           ></div>
         </div>
       </section>
@@ -97,7 +102,7 @@ import {map} from 'rxjs/operators';
 
           <!-- Related Cards Grid -->
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
-            @for (relatedBlog of relatedBlogs(); track relatedBlog.slug; let i = $index) {
+            @for (relatedBlog of relatedBlogs(); track relatedBlog.slug || relatedBlog.id; let i = $index) {
               <div appReveal revealDirection="up" [revealDelay]="i * 100">
                 <app-blog-card [blog]="relatedBlog"></app-blog-card>
               </div>
@@ -118,41 +123,57 @@ import {map} from 'rxjs/operators';
   `
 })
 export class BlogDetailPageComponent {
-    private route = inject(ActivatedRoute);
+    private readonly route = inject(ActivatedRoute);
+    private readonly apiService = inject(PublicApiService);
+    private readonly languageService = inject(LanguageService);
+    private readonly titleService = inject(Title);
+    private readonly metaService = inject(Meta);
+    private readonly destroyRef = inject(DestroyRef);
 
-    slug = toSignal(this.route.paramMap.pipe(map(params => params.get('slug'))));
+    readonly blog = signal<any | null>(null);
+    readonly relatedBlogs = signal<any[]>(ALL_BLOGS.slice(0, 2));
 
-    blog = computed(() => {
-        const s = this.slug();
-        if (! s) 
-            return undefined;
-        
+    constructor() {
+      combineLatest([
+        this.route.paramMap,
+        this.languageService.locale$
+      ]).pipe(
+        switchMap(([params]) => {
+          const slug = params.get('slug');
+          if (!slug) return of(null);
+          return this.apiService.getBlogBySlug(slug).pipe(
+            catchError(() => {
+              const mock = ALL_BLOGS.find(b => b.slug === slug);
+              return of(mock || null);
+            })
+          );
+        }),
+        takeUntilDestroyed(this.destroyRef)
+      ).subscribe((post: any) => {
+        this.blog.set(post);
+        if (post) {
+          const pageTitle = post.metaTitle || post.title || 'QafqazNet Blog';
+          this.titleService.setTitle(pageTitle);
 
+          const desc = post.metaDescription || post.shortDescription || post.description || '';
+          if (desc) {
+            this.metaService.updateTag({ name: 'description', content: desc });
+          }
 
-        return ALL_BLOGS.find(b => b.slug === s);
-    });
-
-    relatedBlogs = computed(() => {
-        const current = this.blog();
-        if (! current) 
-            return [];
-        
-
-
-        // Prefer same category, excluding current
-        let related = ALL_BLOGS.filter(b => b.category === current.category && b.slug !== current.slug);
-
-        // If we don't have enough from the same category, fill with others
-        if (related.length < 2) {
-            const others = ALL_BLOGS.filter(b => b.category !== current.category && b.slug !== current.slug);
-            related = [
-                ... related,
-                ... others
-            ];
+          // Fetch related posts
+          this.apiService.getBlogs(1, 4, post.categoryId).pipe(
+            catchError(() => of(null))
+          ).subscribe((res) => {
+            if (res && res.data) {
+              const filtered = res.data.filter(b => b.slug !== post.slug).slice(0, 2);
+              if (filtered.length > 0) {
+                this.relatedBlogs.set(filtered);
+              }
+            }
+          });
         }
-
-        return related.slice(0, 2);
-    });
+      });
+    }
 
     readonly defaultContent = `
     <p>Müasir biznes mühitində rəqəmsal transformasiya şirkətlərin davamlı inkişafı və rəqabət üstünlüyü qazanması üçün əsas amil kimi qəbul edilir. Lakin bir çox təşkilatlar bu prosesə haradan başlayacaqlarını və hansı texnologiyaların onların xüsusi ehtiyaclarına uyğun olduğunu müəyyən etməkdə çətinlik çəkirlər. İT konsaltinq məhz bu nöqtədə dövriyə girərək bizneslərə strateji və texniki bələdçilik edir.</p>
@@ -171,16 +192,15 @@ export class BlogDetailPageComponent {
     <p>İT konsaltinq, biznesinizin yalnız bu gününü deyil, sabahını da təminata alan strateji bir investisiyadır. Rəqəmsal dünyada geri qalmamaq və biznes proseslərinizi optimallaşdırmaq üçün peşəkar dəstəkdən yararlanmaq şərtdir.</p>
   `;
 
-    getCategoryColor(category : string): string {
-        if (category === 'İcmal' || category.toLowerCase().includes('icmal')) {
-            return '#78D995';
-        }
-        if (category === 'Məhsul' || category.toLowerCase().includes('məhsul')) {
-            return '#FFC778';
-        }
-        if (category === 'Texnologiya' || category.toLowerCase().includes('texnologiya')) {
-            return '#82B4FF';
-        }
-        return '#E2E8F0';
+    getCategoryColor(category: string): string {
+      if (!category) return '#78D995';
+      const cat = category.toLowerCase();
+      if (cat.includes('icmal')) return '#78D995';
+      if (cat.includes('məhsul')) return '#FFC778';
+      if (cat.includes('texnologiya')) return '#82B4FF';
+      if (cat.includes('araşdırma')) return '#D5ADFF';
+      if (cat.includes('elm')) return '#48BB78';
+      if (cat.includes('biznes')) return '#63B3ED';
+      return '#78D995';
     }
 }

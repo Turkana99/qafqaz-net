@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, Component} from '@angular/core';
+import {ChangeDetectionStrategy, Component, input} from '@angular/core';
 import {ABOUT_STATS} from '../../../../core/constants/mock-data';
 import {StatisticCardComponent} from '../../../../shared/ui/statistic-card/statistic-card.component';
 import {CommonModule} from '@angular/common';
@@ -28,13 +28,17 @@ import {RevealDirective} from '../../../../shared/ui/reveal/reveal.directive';
                 </span>
               </div>
               
-              <h2 appReveal revealDirection="left" [revealDelay]="150" class="text-[24px] sm:text-[32px] md:text-[36px] leading-[1.3] font-bold font-bdo text-[#0A1642] tracking-normal">
-                <span class="uppercase">QAFQAZNET 2015-Cİ İLDƏN ETİBARƏN</span> bizneslərin inkişafına dəstək olan 
-                etibarlı İT tərəfdaşıdır.<br class="hidden md:block">
-                Biz texnologiyanı sadəcə bir<br class="hidden md:block">
-                vasitə kimi deyil, biznes<br class="hidden md:block">
-                uğurunun əsas açarı kimi görürük.
-              </h2>
+              @if (content()?.title; as title) {
+                <h2 appReveal revealDirection="left" [revealDelay]="150" [innerHTML]="title" class="text-[24px] sm:text-[32px] md:text-[36px] leading-[1.3] font-bold font-bdo text-[#0A1642] tracking-normal"></h2>
+              } @else {
+                <h2 appReveal revealDirection="left" [revealDelay]="150" class="text-[24px] sm:text-[32px] md:text-[36px] leading-[1.3] font-bold font-bdo text-[#0A1642] tracking-normal">
+                  <span class="uppercase">QAFQAZNET 2015-Cİ İLDƏN ETİBARƏN</span> bizneslərin inkişafına dəstək olan 
+                  etibarlı İT tərəfdaşıdır.<br class="hidden md:block">
+                  Biz texnologiyanı sadəcə bir<br class="hidden md:block">
+                  vasitə kimi deyil, biznes<br class="hidden md:block">
+                  uğurunun əsas açarı kimi görürük.
+                </h2>
+              }
             </div>
 
             <!-- Statistic Cards Grid -->
@@ -70,5 +74,6 @@ import {RevealDirective} from '../../../../shared/ui/reveal/reveal.directive';
   `
 })
 export class AboutSectionComponent {
-    stats = ABOUT_STATS;
+  content = input<any | undefined>(undefined);
+  stats = ABOUT_STATS;
 }

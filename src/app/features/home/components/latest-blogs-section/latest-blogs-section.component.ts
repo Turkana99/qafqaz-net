@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, Component} from '@angular/core';
+import {ChangeDetectionStrategy, Component, computed, input} from '@angular/core';
 import {RouterLink} from '@angular/router';
 import {LATEST_BLOGS} from '../../../../core/constants/mock-data';
 import {RevealDirective} from '../../../../shared/ui/reveal/reveal.directive';
@@ -36,7 +36,7 @@ import {BlogCardComponent} from '../../../../shared/ui/blog-card/blog-card.compo
 
         <!-- Blog Cards Row -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
-          @for (blog of blogs; track blog.slug; let i = $index) {
+          @for (blog of blogs(); track blog.slug || blog.id; let i = $index) {
             <div appReveal revealDirection="up" [revealDelay]="i * 150">
               <app-blog-card [blog]="blog"></app-blog-card>
             </div>
@@ -63,6 +63,10 @@ import {BlogCardComponent} from '../../../../shared/ui/blog-card/blog-card.compo
   `
 })
 export class LatestBlogsSectionComponent {
-    blogs = LATEST_BLOGS;
+    items = input<any[] | undefined>(undefined);
+    readonly blogs = computed(() => {
+        const list = this.items();
+        return (list && list.length > 0) ? list : LATEST_BLOGS;
+    });
 }
 

@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, Component} from '@angular/core';
+import {ChangeDetectionStrategy, Component, input} from '@angular/core';
 import {RouterLink} from '@angular/router';
 import {ButtonComponent} from '../../../../shared/ui/button/button.component';
 import {IconComponent} from '../../../../shared/ui/icon/icon.component';
@@ -24,14 +24,22 @@ interface HeroFeature {
       <div class="container-main relative z-20 w-full h-full flex flex-col justify-center">
         <!-- Text Content -->
         <div class="flex flex-col text-white max-w-[800px] items-start text-left">
-           <h1 appReveal revealDirection="left" [revealDelay]="100" class="font-bdo font-semibold text-[32px] sm:text-[44px] md:text-[52px] lg:text-[64px] leading-[1.18] lg:leading-[83px] tracking-[-0.03em] align-middle uppercase text-left">
-             SİZİN <span style="background: linear-gradient(90deg, #18E792 25.31%, #0000FE 113.05%); background-clip: text; -webkit-background-clip: text; color: transparent; -webkit-text-fill-color: transparent;">ETİBARLI</span><br class="hidden sm:block"/>
-             İT TƏRƏFDAŞINIZ
-           </h1>
+           @if (content()?.title; as title) {
+             <h1 appReveal revealDirection="left" [revealDelay]="100" [innerHTML]="title" class="font-bdo font-semibold text-[32px] sm:text-[44px] md:text-[52px] lg:text-[64px] leading-[1.18] lg:leading-[83px] tracking-[-0.03em] align-middle uppercase text-left"></h1>
+           } @else {
+             <h1 appReveal revealDirection="left" [revealDelay]="100" class="font-bdo font-semibold text-[32px] sm:text-[44px] md:text-[52px] lg:text-[64px] leading-[1.18] lg:leading-[83px] tracking-[-0.03em] align-middle uppercase text-left">
+               SİZİN <span style="background: linear-gradient(90deg, #18E792 25.31%, #0000FE 113.05%); background-clip: text; -webkit-background-clip: text; color: transparent; -webkit-text-fill-color: transparent;">ETİBARLI</span><br class="hidden sm:block"/>
+               İT TƏRƏFDAŞINIZ
+             </h1>
+           }
            
-           <p appReveal revealDirection="left" [revealDelay]="250" class="font-bdo font-normal text-[16px] sm:text-[18px] leading-[26px] sm:leading-[30px] tracking-normal text-hero-description max-w-[500px] mt-4 sm:mt-6 text-left">
-             Biznesinizi inkişaf etdirmək üçün <span class="hero-highlight">effektiv</span> və <span class="hero-highlight">fərdi</span> İT həlləri təqdim edirik.
-           </p>
+           @if (content()?.subtitle; as sub) {
+             <p appReveal revealDirection="left" [revealDelay]="250" [innerHTML]="sub" class="font-bdo font-normal text-[16px] sm:text-[18px] leading-[26px] sm:leading-[30px] tracking-normal text-hero-description max-w-[500px] mt-4 sm:mt-6 text-left"></p>
+           } @else {
+             <p appReveal revealDirection="left" [revealDelay]="250" class="font-bdo font-normal text-[16px] sm:text-[18px] leading-[26px] sm:leading-[30px] tracking-normal text-hero-description max-w-[500px] mt-4 sm:mt-6 text-left">
+               Biznesinizi inkişaf etdirmək üçün <span class="hero-highlight">effektiv</span> və <span class="hero-highlight">fərdi</span> İT həlləri təqdim edirik.
+             </p>
+           }
            
            <!-- Feature list -->
            <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4 sm:gap-y-6 mt-8 sm:mt-12 max-w-2xl w-full text-left">
@@ -56,6 +64,7 @@ interface HeroFeature {
   `
 })
 export class HeroSectionComponent {
+    content = input<any | undefined>(undefined);
     features : readonly HeroFeature[] = [
         {
             icon: 'assets/icons/hugeicons_security-lock.svg',

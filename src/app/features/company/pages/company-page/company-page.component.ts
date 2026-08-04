@@ -1,9 +1,14 @@
-import {ChangeDetectionStrategy, Component} from '@angular/core';
+import {ChangeDetectionStrategy, Component, inject, signal, DestroyRef} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {RevealDirective} from '../../../../shared/ui/reveal/reveal.directive';
 import {StatisticCardComponent} from '../../../../shared/ui/statistic-card/statistic-card.component';
 import {ABOUT_STATS} from '../../../../core/constants/mock-data';
 import {CallToActionSectionComponent} from '../../../home/components/call-to-action-section/call-to-action-section.component';
+import {PublicApiService} from '../../../../core/services/public-api.service';
+import {LanguageService} from '../../../../core/services/language.service';
+import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
+import {switchMap, catchError, of} from 'rxjs';
+import {ResolveMediaUrlPipe} from '../../../../core/utils/media.helper';
 
 interface CompanyValue {
     readonly title: string;
@@ -165,12 +170,77 @@ interface CompanyFact {
       </div>
     </section>
 
+    <!-- Team Section -->
+    @if (teamMembers().length > 0) {
+      <section class="w-full bg-[#FFFFFF] py-20 md:py-24 lg:py-32">
+        <div class="container-main">
+          <!-- Title -->
+          <h2 
+            appReveal revealDirection="left" [revealDelay]="0"
+            class="font-bdo font-bold text-[36px] md:text-[48px] lg:text-[60px] leading-[44px] md:leading-[56px] lg:leading-[60px] tracking-normal text-center lg:text-left text-[#0A1642] mb-12 lg:mb-16"
+          >
+            Komandamız
+          </h2>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-8">
+            @for (member of teamMembers(); track member.id || member.name; let i = $index) {
+              <div 
+                appReveal revealDirection="up" [revealDelay]="i * 80"
+                class="w-full rounded-[24px] bg-[#F7F9FC] p-6 flex flex-col items-center text-center transition-all duration-300 hover:shadow-[0_8px_24px_rgba(0,0,0,0.06)] hover:-translate-y-1"
+              >
+                <!-- Member Photo -->
+                @if (member.photoUrl || member.image || member.imageUrl) {
+                  <div class="w-32 h-32 rounded-full overflow-hidden bg-white mb-4 shadow-sm">
+                    <img 
+                      [src]="member.photoUrl || member.image || member.imageUrl" 
+                      [alt]="member.name"
+                      class="w-full h-full object-cover"
+                    >
+                  </div>
+                }
+
+                <!-- Name & Position -->
+                <h3 class="font-bdo font-bold text-[20px] text-[#0A1642] m-0 mb-1">
+                  {{ member.name || member.fullName }}
+                </h3>
+                <p class="font-bdo font-normal text-[15px] text-[#80899D] m-0">
+                  {{ member.position || member.jobTitle }}
+                </p>
+
+                <!-- Social Links (Only displayed if provided by API) -->
+                @if (member.linkedin || member.twitter || member.socialLinks) {
+                  <div class="flex items-center gap-3 mt-4">
+                    @if (member.linkedin) {
+                      <a [href]="member.linkedin" target="_blank" rel="noopener noreferrer" class="text-[#80899D] hover:text-[#0000FE] transition-colors" aria-label="LinkedIn">
+                        <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5V13.2a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.46 10.9v8.37H9.2v-8.37H6.46M7.83 6.75a1.63 1.63 0 0 0-1.63 1.63a1.64 1.64 0 0 0 1.63 1.64a1.64 1.64 0 0 0 1.63-1.64a1.63 1.63 0 0 0-1.63-1.63Z"/></svg>
+                      </a>
+                    }
+                    @if (member.twitter) {
+                      <a [href]="member.twitter" target="_blank" rel="noopener noreferrer" class="text-[#80899D] hover:text-[#0000FE] transition-colors" aria-label="Twitter">
+                        <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M22.46 6c-.77.35-1.6.58-2.46.69.88-.53 1.56-1.37 1.88-2.38-.83.5-1.75.85-2.72 1.05C18.37 4.5 17.26 4 16 4c-2.35 0-4.27 1.92-4.27 4.29 0 .34.04.67.11.98C8.28 9.09 5.11 7.38 3 4.79c-.37.63-.58 1.37-.58 2.15 0 1.49.75 2.81 1.91 3.56-.71 0-1.37-.2-1.95-.5v.05c0 2.08 1.48 3.82 3.44 4.21a4.22 4.22 0 0 1-1.93.07 4.28 4.28 0 0 0 4 2.98 8.521 8.521 0 0 1-5.33 1.84c-.34 0-.68-.02-1.02-.06C3.44 20.29 5.7 21 8.12 21 16 21 20.33 14.46 20.33 8.79c0-.19 0-.37-.01-.56.84-.6 1.56-1.36 2.14-2.23Z"/></svg>
+                      </a>
+                    }
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        </div>
+      </section>
+    }
+
     <!-- Final CTA Section (Dark Variant) -->
     <app-call-to-action-section variant="dark"></app-call-to-action-section>
   `
 })
 export class CompanyPageComponent {
+    private readonly apiService = inject(PublicApiService);
+    private readonly languageService = inject(LanguageService);
+    private readonly destroyRef = inject(DestroyRef);
+
     stats = ABOUT_STATS;
+
+    readonly teamMembers = signal<any[]>([]);
 
     readonly values : readonly CompanyValue[] = [
         {
@@ -224,4 +294,18 @@ export class CompanyPageComponent {
             description: 'Azərbaycanda və regionda İT sektorunda liderliyimizi gücləndirmək, müştərilərimizə qabaqcıl texnologiyalar və premium xidmətlər təqdim etməkdir.'
         }
     ];
+
+    constructor() {
+        this.languageService.locale$.pipe(
+            switchMap(() => this.apiService.getTeam().pipe(
+                catchError(() => of(null))
+            )),
+            takeUntilDestroyed(this.destroyRef)
+        ).subscribe((res: any) => {
+            const list = Array.isArray(res) ? res : (res && res.data ? res.data : []);
+            if (list && list.length > 0) {
+                this.teamMembers.set(list);
+            }
+        });
+    }
 }
