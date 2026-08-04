@@ -34,13 +34,13 @@ import { RevealDirective } from '../../../../shared/ui/reveal/reveal.directive';
                   <button
                     type="button"
                     (click)="selectCategory(category.id)"
-                    [attr.aria-pressed]="selectedCategoryId() === category.id"
+                    [attr.aria-pressed]="activeCategory().id === category.id"
                     class="w-full flex items-center justify-between py-4 sm:py-5 text-left border-b border-[#F0F2F5] group transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#18E792]"
                   >
                     <span
                       class="font-bdo text-[16px] sm:text-[18px] leading-[20px] transition-colors duration-300 pr-4"
                       [class]="
-                        selectedCategoryId() === category.id
+                        activeCategory().id === category.id
                           ? 'font-medium text-[#18E792]'
                           : 'font-normal text-[#80899D] group-hover:text-[#18E792] group-focus-visible:text-[#18E792]'
                       "
@@ -56,7 +56,7 @@ import { RevealDirective } from '../../../../shared/ui/reveal/reveal.directive';
                         aria-hidden="true"
                         class="absolute inset-0 w-full h-full object-contain transition-opacity duration-300 ease-in-out"
                         [class]="
-                          selectedCategoryId() === category.id
+                          activeCategory().id === category.id
                             ? 'opacity-0'
                             : 'opacity-100 group-hover:opacity-0 group-focus-visible:opacity-0'
                         "
@@ -68,7 +68,7 @@ import { RevealDirective } from '../../../../shared/ui/reveal/reveal.directive';
                         aria-hidden="true"
                         class="absolute inset-0 w-full h-full object-contain transition-opacity duration-300 ease-in-out"
                         [class]="
-                          selectedCategoryId() === category.id
+                          activeCategory().id === category.id
                             ? 'opacity-100'
                             : 'opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100'
                         "
@@ -189,12 +189,53 @@ import { RevealDirective } from '../../../../shared/ui/reveal/reveal.directive';
   ],
 })
 export class EquipmentSectionComponent {
+  readonly categories = input<any[] | undefined>(undefined);
   readonly products = input<any[] | undefined>(undefined);
   readonly selectedCategoryId = signal<string>(EQUIPMENT_CATEGORIES[0].id);
 
   readonly dynamicCategories = computed<EquipmentCategory[]>(() => {
-    const list = this.products();
-    if (!list || list.length === 0) return [...EQUIPMENT_CATEGORIES];
+    const list = this.products() || [];
+    const catList = this.categories();
+
+    if (catList && catList.length > 0) {
+      const sorted = [...catList].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+      return sorted.map((cat, idx) => {
+        const catId = String(cat.slug || cat.id || `api_cat_${idx}`);
+        const catName = cat.name || 'Kateqoriya';
+        const matchedProds = list.filter(p =>
+          p.categoryName === catName ||
+          p.category?.name === catName ||
+          p.category?.slug === cat.slug ||
+          p.categorySlug === cat.slug ||
+          String(p.categoryId) === String(cat.id)
+        );
+
+        return {
+          id: catId,
+          label: catName,
+          defaultArrowIcon: 'assets/icons/gray-arrow.svg',
+          activeArrowIcon: 'assets/icons/green-arrow.svg',
+          groups: [
+            {
+              id: `grp_${catId}`,
+              title: catName,
+              slider: matchedProds.length > 4,
+              items: matchedProds.map(it => ({
+                id: String(it.id || it.slug),
+                label: it.title || it.name,
+                slug: it.slug,
+                shortDescription: it.shortDescription,
+                imageUrl: it.imageUrl,
+                categoryName: it.categoryName
+              }))
+            }
+          ]
+        };
+      });
+    }
+
+    if (list.length === 0) return [...EQUIPMENT_CATEGORIES];
+
     const categoryMap = new Map<string, any[]>();
     list.forEach(p => {
       const catName = p.categoryName || p.category || 'Ümumi';
@@ -210,17 +251,20 @@ export class EquipmentSectionComponent {
       result.push({
         id: catId,
         label: catName,
-        defaultArrowIcon: 'assets/icons/defaultArrow.svg',
-        activeArrowIcon: 'assets/icons/activeArrow.svg',
+        defaultArrowIcon: 'assets/icons/gray-arrow.svg',
+        activeArrowIcon: 'assets/icons/green-arrow.svg',
         groups: [
           {
             id: `grp_${catId}`,
             title: catName,
             slider: items.length > 4,
             items: items.map(it => ({
-              id: String(it.id),
+              id: String(it.id || it.slug),
               label: it.title || it.name,
-              slug: it.slug
+              slug: it.slug,
+              shortDescription: it.shortDescription,
+              imageUrl: it.imageUrl,
+              categoryName: it.categoryName
             }))
           }
         ]

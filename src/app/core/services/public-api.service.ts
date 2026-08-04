@@ -186,11 +186,22 @@ export class PublicApiService {
   }
 
   // 8. Services
-  getServices(): Observable<Service[]> {
-    return this.http.get<any>(environment.services.getAllServices).pipe(
+  getServices(page = 1, perPage = 10): Observable<PaginatedResponse<Service>> {
+    const params = new HttpParams()
+      .set('page', page.toString())
+      .set('perPage', perPage.toString())
+      .set('limit', perPage.toString());
+
+    return this.http.get<any>(environment.services.getAllServices, { params }).pipe(
       map(res => {
-        const items = this.unwrapData<Service[]>(res);
-        return Array.isArray(items) ? items : [];
+        const data = Array.isArray(res?.data) ? res.data : (Array.isArray(res) ? res : []);
+        const meta = res?.meta || {
+          current_page: page,
+          total_pages: Math.ceil(data.length / perPage) || 1,
+          total: data.length,
+          per_page: perPage
+        };
+        return { data, meta };
       })
     );
   }

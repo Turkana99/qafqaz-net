@@ -1,9 +1,13 @@
-import { ChangeDetectionStrategy, Component, computed, input, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, inject, signal, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { switchMap, catchError, of } from 'rxjs';
 import { RouterLink } from '@angular/router';
 import { ButtonComponent } from '../../../../shared/ui/button/button.component';
 import { RevealDirective } from '../../../../shared/ui/reveal/reveal.directive';
 import { RequestModalService } from '../../../../shared/services/request-modal.service';
 import { ParticleBackgroundComponent } from '../../../../shared/ui/particle-background/particle-background.component';
+import { PublicApiService } from '../../../../core/services/public-api.service';
+import { LanguageService } from '../../../../core/services/language.service';
 
 export type CallToActionVariant = 'light' | 'dark';
 
@@ -52,18 +56,28 @@ interface TrustedCompanyLogo {
 
         <!-- Main Title -->
         <h2 appReveal revealDirection="up" [revealDelay]="100" [class]="titleClass()">
-          @if (customTitle()) {
-            {{ customTitle() }}
-          } @else {
-            Rəqəmsal həllərinizə buradan<br class="hidden sm:block" />
-            bizimlə başlayın
-          }
+          {{ ctaTitle() }}
         </h2>
 
         <!-- Description -->
         <p appReveal revealDirection="up" [revealDelay]="150" [class]="descriptionClass()">
-          {{ customDescription() || 'Müasir texnologiyalar və təcrübəli komanda ilə rəqəmsal transformasiyanızı sürətləndiririk.' }}
+          {{ ctaDescription() }}
         </p>
+
+        @if (ctaImageUrl()) {
+          <div
+            appReveal
+            revealDirection="up"
+            [revealDelay]="170"
+            class="w-full mt-4 mb-6 flex justify-center"
+          >
+            <img
+              [src]="ctaImageUrl()"
+              [alt]="ctaTitle()"
+              class="max-w-full h-auto rounded-[20px] object-cover max-h-[300px]"
+            />
+          </div>
+        }
 
         <!-- Buttons Row (Desktop & Mobile Request Button) -->
         <div
@@ -113,9 +127,34 @@ interface TrustedCompanyLogo {
 })
 export class CallToActionSectionComponent {
   variant = input<CallToActionVariant>('light');
-  customTitle = input<string | undefined>(undefined, { alias: 'title' });
-  customDescription = input<string | undefined>(undefined, { alias: 'description' });
   private modalService = inject(RequestModalService);
+  private apiService = inject(PublicApiService);
+  private languageService = inject(LanguageService);
+  private destroyRef = inject(DestroyRef);
+
+  readonly ctaTitle = signal<string>('Rəqəmsal həllərinizə buradan bizimlə başlayın');
+  readonly ctaDescription = signal<string>('Müasir texnologiyalar və təcrübəli komanda ilə rəqəmsal transformasiyanızı sürətləndiririk.');
+  readonly ctaImageUrl = signal<string | null>(null);
+
+  constructor() {
+    this.languageService.locale$.pipe(
+      switchMap(() => this.apiService.getPageContents('shared').pipe(
+        catchError(() => of(null))
+      )),
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe((data: any) => {
+      if (data?.sections?.cta) {
+        const cta = data.sections.cta;
+        if (cta.title) {
+          this.ctaTitle.set(cta.title);
+        }
+        if (cta.body) {
+          this.ctaDescription.set(cta.body);
+        }
+        this.ctaImageUrl.set(cta.imageUrl || null);
+      }
+    });
+  }
 
   openModal() {
     this.modalService.open();
@@ -158,3 +197,4 @@ export class CallToActionSectionComponent {
       : '';
   });
 }
+

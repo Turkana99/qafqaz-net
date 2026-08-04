@@ -122,6 +122,7 @@ export interface ServiceFeature {
   id?: string | number;
   title: string;
   description?: string;
+  icon?: string;
   iconUrl?: string;
   sortOrder?: number;
 }
@@ -131,8 +132,10 @@ export interface Service {
   title: string;
   slug: string;
   shortDescription?: string;
+  description?: string;
   iconUrl?: string;
   coverImage?: string;
+  coverImageUrl?: string;
   sortOrder?: number;
   isFeatured?: boolean;
 }

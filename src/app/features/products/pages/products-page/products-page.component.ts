@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { switchMap, catchError, of } from 'rxjs';
+import { switchMap, catchError, of, forkJoin } from 'rxjs';
 import { CallToActionSectionComponent } from '../../../home/components/call-to-action-section/call-to-action-section.component';
 import { RevealDirective } from '../../../../shared/ui/reveal/reveal.directive';
 import { EquipmentSectionComponent } from '../../components/equipment-section/equipment-section.component';
@@ -15,28 +15,26 @@ export interface ProductBenefit {
   readonly iconBackground: string;
 }
 
-export const PRODUCT_BENEFITS: ReadonlyArray<ProductBenefit> = [
+export const INITIAL_PRODUCT_BENEFITS: ReadonlyArray<ProductBenefit> = [
   {
     id: '1',
-    title: 'Etibarlı məhsullar',
-    description:
-      'Təklif etdiyimiz bütün məhsullar keyfiyyət və uyğunluq baxımından seçilərək təqdim olunur.',
-    icon: 'assets/icons/benefit1.svg',
+    title: '',
+    description: '',
+    icon: '',
     iconBackground: 'bg-[#F3E8FF]',
   },
   {
     id: '2',
-    title: 'Qiymətdə rəqabətlilik',
-    description:
-      'Bazar standartlarına uyğun, optimal qiymətlərlə texnoloji məhsulları əlçatan edirik.',
-    icon: 'assets/icons/benefit2.svg',
+    title: '',
+    description: '',
+    icon: '',
     iconBackground: 'bg-[#E9F9F1]',
   },
   {
     id: '3',
-    title: 'Peşəkar dəstək',
-    description: 'Məhsul seçimi və istifadəsi zamanı sizə operativ və peşəkar dəstək göstəririk.',
-    icon: 'assets/icons/benefit3.svg',
+    title: '',
+    description: '',
+    icon: '',
     iconBackground: 'bg-[#FFF7E6]',
   },
 ];
@@ -59,7 +57,7 @@ export const PRODUCT_BENEFITS: ReadonlyArray<ProductBenefit> = [
           [revealDelay]="0"
           class="font-bdo font-bold text-[36px] leading-[44px] md:text-[48px] md:leading-[56px] lg:text-[60px] lg:leading-[76px] text-[#0A1642] tracking-normal text-center m-0"
         >
-          Məhsullar və avadanlıqlar
+          {{ heroTitle() }}
         </h1>
 
         <!-- Description -->
@@ -69,14 +67,12 @@ export const PRODUCT_BENEFITS: ReadonlyArray<ProductBenefit> = [
           [revealDelay]="150"
           class="font-bdo font-normal text-[14px] leading-[24px] md:text-[16px] md:leading-[28px] text-[#80899D] tracking-normal text-center max-w-[800px] mt-4 sm:mt-6 mb-8 sm:mb-12 m-0"
         >
-          Məhsullarımız bazarın aparıcı texnologiyalarına əsaslanaraq seçilir və sizə təqdim olunur.
-          Keyfiyyət, uyğunluq və performansı ön planda tutaraq, biznesiniz üçün etibarlı və effektiv
-          həllər təqdim edirik.
+          {{ heroDescription() }}
         </p>
 
         <!-- 3 Product Benefit Cards Grid -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
-          @for (benefit of benefits; track benefit.id; let i = $index) {
+          @for (benefit of benefits(); track benefit.id; let i = $index) {
             <div
               appReveal
               revealDirection="up"
@@ -112,7 +108,10 @@ export const PRODUCT_BENEFITS: ReadonlyArray<ProductBenefit> = [
     </section>
 
     <!-- 2. Equipment Categories & Product Groups Section -->
-    <app-equipment-section [products]="products()"></app-equipment-section>
+    <app-equipment-section
+      [categories]="categories()"
+      [products]="products()"
+    ></app-equipment-section>
 
     <!-- 3. Shared Call To Action Section -->
     <app-call-to-action-section variant="dark"></app-call-to-action-section>
@@ -123,18 +122,56 @@ export class ProductsPageComponent {
   private readonly languageService = inject(LanguageService);
   private readonly destroyRef = inject(DestroyRef);
 
+  readonly categories = signal<any[]>([]);
   readonly products = signal<any[]>([]);
-  readonly benefits = PRODUCT_BENEFITS;
+  readonly heroTitle = signal<string>('');
+  readonly heroDescription = signal<string>('');
+  readonly benefits = signal<ProductBenefit[]>(INITIAL_PRODUCT_BENEFITS as ProductBenefit[]);
 
   constructor() {
     this.languageService.locale$.pipe(
-      switchMap(() => this.apiService.getProducts(1, 100).pipe(
-        catchError(() => of(null))
-      )),
+      switchMap(() => forkJoin({
+        categoriesRes: this.apiService.getProductCategories().pipe(
+          catchError(() => of([]))
+        ),
+        productsRes: this.apiService.getProducts(1, 100).pipe(
+          catchError(() => of(null))
+        ),
+        pageContent: this.apiService.getPageContents('products').pipe(
+          catchError(() => of(null))
+        )
+      })),
       takeUntilDestroyed(this.destroyRef)
-    ).subscribe((res: any) => {
-      if (res && res.data) {
-        this.products.set(res.data);
+    ).subscribe(({ categoriesRes, productsRes, pageContent }: any) => {
+      if (Array.isArray(categoriesRes)) {
+        this.categories.set(categoriesRes);
+      }
+      if (productsRes && productsRes.data) {
+        this.products.set(productsRes.data);
+      }
+      if (pageContent?.sections) {
+        const sections = pageContent.sections;
+        if (sections.hero) {
+          if (sections.hero.title) {
+            this.heroTitle.set(sections.hero.title);
+          }
+          if (sections.hero.body) {
+            this.heroDescription.set(sections.hero.body);
+          }
+        }
+        this.benefits.update(list => list.map((b, idx) => {
+          const sectionKey = `feature_${idx + 1}` as keyof typeof sections;
+          const feat = sections[sectionKey];
+          if (feat) {
+            return {
+              ...b,
+              title: feat.title || b.title,
+              description: feat.body || b.description,
+              icon: feat.imageUrl || ''
+            };
+          }
+          return b;
+        }));
       }
     });
   }

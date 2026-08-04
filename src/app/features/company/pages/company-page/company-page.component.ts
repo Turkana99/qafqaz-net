@@ -7,8 +7,7 @@ import {CallToActionSectionComponent} from '../../../home/components/call-to-act
 import {PublicApiService} from '../../../../core/services/public-api.service';
 import {LanguageService} from '../../../../core/services/language.service';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
-import {switchMap, catchError, of} from 'rxjs';
-import {ResolveMediaUrlPipe} from '../../../../core/utils/media.helper';
+import {switchMap, catchError, of, forkJoin} from 'rxjs';
 
 interface CompanyValue {
     readonly title: string;
@@ -27,6 +26,46 @@ interface CompanyFact {
     readonly description: string;
 }
 
+const INITIAL_VALUES: ReadonlyArray<CompanyValue> = [
+    {
+        title: 'Etibarlılıq',
+        description: 'Müştərilərimizə yüksək təhlükəsizlik və davamlılıq təmin edən stabil İT infrastrukturu qururuq.'
+    }, {
+        title: 'İnnovasiya',
+        description: 'Daim yenilənən texnologiyalarla iş proseslərinizi optimallaşdırır, daha sürətli və çevik həllər təqdim edirik.'
+    }, {
+        title: 'Effektivlik',
+        description: 'Resurslarınızı maksimum səmərəli idarə etməyə imkan verən intellektual İT həlləri ilə iş yükünüzü azaldırıq.'
+    }, {
+        title: 'Məqsədimiz',
+        description: 'Müştərilərimizin rəqəmsal dünyada fərqlənməsinə, böyüməsinə və rəqabət üstünlüyü qazanmasına dəstək olmaqdır.'
+    }
+];
+
+const INITIAL_VALUE_CARDS: ReadonlyArray<CompanyValueCard> = [
+    {
+        title: 'Müştəriyönümlülük',
+        description: 'Biznesiniz üçün fərdi həllər! Müştərilərimizin ehtiyaclarını dərindən anlayır, onların uğuruna doğru gedən yolu asanlaşdırırıq. Hər bir həllimizi fərdi və ehtiyaclarınıza uyğun şəkildə formalaşdırırıq.',
+        icon: 'assets/icons/about1.svg',
+        iconBackground: '#E9F9F1'
+    }, {
+        title: 'İnnovasiya',
+        description: 'Gələcəyi indidən qururuq! Biz daim ən son texnoloji yenilikləri araşdırır və tətbiq edirik. Müştərilərimizə çevik, müasir və effektiv həllər təqdim edərək, onların rəqəmsal dünyada liderliyini təmin edirik.',
+        icon: 'assets/icons/about2.svg',
+        iconBackground: '#F3E8FF'
+    }, {
+        title: 'Etibar və keyfiyyət',
+        description: 'Bizə güvənənlər qazanır! Hər layihəyə maksimum məsuliyyət və peşəkarlıqla yanaşırıq. Yüksək keyfiyyət və vaxtında icra edilən xidmətlərimizlə biznesiniz üçün etibarlı tərəfdaş oluruq.',
+        icon: 'assets/icons/about3.svg',
+        iconBackground: '#FFF7E6'
+    }, {
+        title: 'Komanda işi',
+        description: 'Birlikdə daha güclüyük! Bizim uğurumuz peşəkar və sadiq komandamızdır. Güclü əməkdaşlıq ruhu ilə müştərilərimizin uğurunu təmin edərək, daha böyük hədəflərə birlikdə çatırıq.',
+        icon: 'assets/icons/about4.svg',
+        iconBackground: '#E6F6FF'
+    }
+];
+
 @Component({
     selector: 'app-company-page',
     standalone: true,
@@ -43,7 +82,7 @@ interface CompanyFact {
           appReveal revealDirection="up" [revealDelay]="0"
           class="font-bdo font-bold text-[36px] md:text-[48px] lg:text-[60px] leading-[44px] md:leading-[56px] lg:leading-[40px] tracking-normal text-center text-[#0A1642] mb-12 lg:mb-16"
         >
-          Haqqımızda
+          {{ heroTitle() }}
         </h1>
 
         <!-- Main Description -->
@@ -51,14 +90,12 @@ interface CompanyFact {
           appReveal revealDirection="up" [revealDelay]="100"
           class="max-w-[1000px] mx-auto font-bdo font-medium text-[22px] md:text-[27px] lg:text-[32px] leading-[30px] md:leading-[34px] lg:leading-[38px] tracking-normal text-center text-[#0A1642] mb-20 lg:mb-32"
         >
-          QAFQAZNET — 2015-ci ildən etibarən bizneslərin inkişafına dəstək olan etibarlı İT tərəfdaşıdır.
-          <br class="hidden md:block">
-          Biz texnologiyanı sadəcə bir vasitə kimi deyil, biznes uğurunun əsas açarı kimi görürük.
+          {{ heroBody() }}
         </p>
 
         <!-- Values Row -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-10">
-          @for (value of values; track value.title; let i = $index) {
+          @for (value of values(); track value.title; let i = $index) {
             <div 
               appReveal revealDirection="up" [revealDelay]="200 + (i * 100)"
               class="flex flex-col gap-4 text-center md:text-left"
@@ -240,47 +277,13 @@ export class CompanyPageComponent {
 
     stats = ABOUT_STATS;
 
+    readonly heroTitle = signal<string>('Haqqımızda');
+    readonly heroBody = signal<string>(
+        'QAFQAZNET — 2015-ci ildən etibarən bizneslərin inkişafına dəstək olan etibarlı İT tərəfdaşıdır.\nBiz texnologiyanı sadəcə bir vasitə kimi deyil, biznes uğurunun əsas açarı kimi görürük.'
+    );
+    readonly values = signal<CompanyValue[]>([...INITIAL_VALUES]);
+    readonly valueCards = INITIAL_VALUE_CARDS;
     readonly teamMembers = signal<any[]>([]);
-
-    readonly values : readonly CompanyValue[] = [
-        {
-            title: 'Etibarlılıq',
-            description: 'Müştərilərimizə yüksək təhlükəsizlik və davamlılıq təmin edən stabil İT infrastrukturu qururuq.'
-        }, {
-            title: 'İnnovasiya',
-            description: 'Daim yenilənən texnologiyalarla iş proseslərinizi optimallaşdırır, daha sürətli və çevik həllər təqdim edirik.'
-        }, {
-            title: 'Effektivlik',
-            description: 'Resurslarınızı maksimum səmərəli idarə etməyə imkan verən intellektual İT həlləri ilə iş yükünüzü azaldırıq.'
-        }, {
-            title: 'Məqsədimiz',
-            description: 'Müştərilərimizin rəqəmsal dünyada fərqlənməsinə, böyüməsinə və rəqabət üstünlüyü qazanmasına dəstək olmaqdır.'
-        }
-    ];
-
-    readonly valueCards : readonly CompanyValueCard[] = [
-        {
-            title: 'Müştəriyönümlülük',
-            description: 'Biznesiniz üçün fərdi həllər! Müştərilərimizin ehtiyaclarını dərindən anlayır, onların uğuruna doğru gedən yolu asanlaşdırırıq. Hər bir həllimizi fərdi və ehtiyaclarınıza uyğun şəkildə formalaşdırırıq.',
-            icon: 'assets/icons/about1.svg',
-            iconBackground: '#E9F9F1'
-        }, {
-            title: 'İnnovasiya',
-            description: 'Gələcəyi indidən qururuq! Biz daim ən son texnoloji yenilikləri araşdırır və tətbiq edirik. Müştərilərimizə çevik, müasir və effektiv həllər təqdim edərək, onların rəqəmsal dünyada liderliyini təmin edirik.',
-            icon: 'assets/icons/about2.svg',
-            iconBackground: '#F3E8FF'
-        }, {
-            title: 'Etibar və keyfiyyət',
-            description: 'Bizə güvənənlər qazanır! Hər layihəyə maksimum məsuliyyət və peşəkarlıqla yanaşırıq. Yüksək keyfiyyət və vaxtında icra edilən xidmətlərimizlə biznesiniz üçün etibarlı tərəfdaş oluruq.',
-            icon: 'assets/icons/about3.svg',
-            iconBackground: '#FFF7E6'
-        }, {
-            title: 'Komanda işi',
-            description: 'Birlikdə daha güclüyük! Bizim uğurumuz peşəkar və sadiq komandamızdır. Güclü əməkdaşlıq ruhu ilə müştərilərimizin uğurunu təmin edərək, daha böyük hədəflərə birlikdə çatırıq.',
-            icon: 'assets/icons/about4.svg',
-            iconBackground: '#E6F6FF'
-        }
-    ];
 
     readonly companyFacts : readonly CompanyFact[] = [
         {
@@ -297,15 +300,39 @@ export class CompanyPageComponent {
 
     constructor() {
         this.languageService.locale$.pipe(
-            switchMap(() => this.apiService.getTeam().pipe(
-                catchError(() => of(null))
-            )),
+            switchMap(() => forkJoin({
+                teamRes: this.apiService.getTeam().pipe(catchError(() => of(null))),
+                pageContent: this.apiService.getPageContents('about').pipe(catchError(() => of(null)))
+            })),
             takeUntilDestroyed(this.destroyRef)
-        ).subscribe((res: any) => {
-            const list = Array.isArray(res) ? res : (res && res.data ? res.data : []);
+        ).subscribe(({ teamRes, pageContent }: any) => {
+            const list = Array.isArray(teamRes) ? teamRes : (teamRes && teamRes.data ? teamRes.data : []);
             if (list && list.length > 0) {
                 this.teamMembers.set(list);
+            }
+            if (pageContent?.sections) {
+                const sections = pageContent.sections;
+                if (sections.hero) {
+                    if (sections.hero.title) {
+                        this.heroTitle.set(sections.hero.title);
+                    }
+                    if (sections.hero.body) {
+                        this.heroBody.set(sections.hero.body);
+                    }
+                }
+                this.values.update(list => list.map((v, idx) => {
+                    const feat = sections[`feature_${idx + 1}`];
+                    if (feat) {
+                        return {
+                            ...v,
+                            title: feat.title || v.title,
+                            description: feat.body || v.description
+                        };
+                    }
+                    return v;
+                }));
             }
         });
     }
 }
+
