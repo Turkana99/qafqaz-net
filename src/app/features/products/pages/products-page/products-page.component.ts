@@ -130,14 +130,14 @@ export class ProductsPageComponent {
 
   constructor() {
     this.languageService.locale$.pipe(
-      switchMap(() => forkJoin({
+      switchMap((locale) => forkJoin({
         categoriesRes: this.apiService.getProductCategories().pipe(
           catchError(() => of([]))
         ),
         productsRes: this.apiService.getProducts(1, 100).pipe(
           catchError(() => of(null))
         ),
-        pageContent: this.apiService.getPageContents('products').pipe(
+        pageContent: this.apiService.getPageContents('products', locale).pipe(
           catchError(() => of(null))
         )
       })),
@@ -159,19 +159,36 @@ export class ProductsPageComponent {
             this.heroDescription.set(sections.hero.body);
           }
         }
-        this.benefits.update(list => list.map((b, idx) => {
-          const sectionKey = `feature_${idx + 1}` as keyof typeof sections;
-          const feat = sections[sectionKey];
-          if (feat) {
+
+        const featureSection = sections.features || sections.benefits;
+        if (Array.isArray(featureSection?.items) && featureSection.items.length > 0) {
+          const sortedItems = [...featureSection.items].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+          const mappedBenefits: ProductBenefit[] = sortedItems.map((item: any, idx: number) => {
+            const initial = (INITIAL_PRODUCT_BENEFITS as ProductBenefit[])[idx] || (INITIAL_PRODUCT_BENEFITS as ProductBenefit[])[0];
             return {
-              ...b,
-              title: feat.title || b.title,
-              description: feat.body || b.description,
-              icon: feat.imageUrl || ''
+              id: initial.id || String(idx + 1),
+              iconBackground: initial.iconBackground || 'bg-[#F3E8FF]',
+              icon: item.imageUrl || item.icon || initial?.icon || '',
+              title: item.title || initial?.title || '',
+              description: item.description || initial?.description || ''
             };
-          }
-          return b;
-        }));
+          });
+          this.benefits.set(mappedBenefits);
+        } else {
+          this.benefits.update(list => list.map((b, idx) => {
+            const sectionKey = `feature_${idx + 1}` as keyof typeof sections;
+            const feat = sections[sectionKey];
+            if (feat) {
+              return {
+                ...b,
+                title: feat.title || b.title,
+                description: feat.body || b.description,
+                icon: feat.imageUrl || (feat.items && feat.items[0]?.imageUrl) || b.icon
+              };
+            }
+            return b;
+          }));
+        }
       }
     });
   }

@@ -1,8 +1,9 @@
-import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { PARTNERS } from '../../../../core/constants/mock-data';
 import { LogoMarqueeComponent } from '../../../../shared/ui/logo-marquee/logo-marquee.component';
 import { RevealDirective } from '../../../../shared/ui/reveal/reveal.directive';
+import { TranslationService } from '../../../../core/services/translation.service';
 
 @Component({
   selector: 'app-partners-section',
@@ -17,7 +18,7 @@ import { RevealDirective } from '../../../../shared/ui/reveal/reveal.directive';
           <!-- Top Row: Title and Button -->
           <div class="flex flex-col md:flex-row md:items-start justify-between gap-4 sm:gap-6">
             <h2 appReveal revealDirection="left" class="text-[28px] sm:text-[48px] lg:text-[60px] leading-[1.2] lg:leading-[60px] font-bold font-bdo text-[#0A1642] tracking-normal m-0 text-center md:text-left">
-              Tərəfdaşlarımız
+              {{ title() || t().ourPartners }}
             </h2>
             
             <a
@@ -25,7 +26,7 @@ import { RevealDirective } from '../../../../shared/ui/reveal/reveal.directive';
               routerLink="/partners"
               class="hidden md:inline-flex group h-[48px] shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-[12px] bg-[#F7F9FC] px-6 font-bdo text-[16px] font-medium leading-none text-[#4343FF] transition-colors duration-300 hover:text-[#0000AD] focus-visible:text-[#0000AD] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0000AD] focus-visible:ring-offset-2"
             >
-              <span class="font-bdo font-bold transition-colors duration-300 group-hover:text-[#0000AD] group-focus-visible:text-[#0000AD]">20+ tərəfdaşın hamısını göstər</span>
+              <span class="font-bdo font-bold transition-colors duration-300 group-hover:text-[#0000AD] group-focus-visible:text-[#0000AD]">{{ buttonText() || t().showAllPartners }}</span>
               <span
                 aria-hidden="true"
                 class="h-5 w-5 bg-current transition-colors duration-300"
@@ -35,9 +36,7 @@ import { RevealDirective } from '../../../../shared/ui/reveal/reveal.directive';
           </div>
 
           <!-- Second Row: Description -->
-          <p appReveal revealDirection="left" [revealDelay]="100" class="text-[16px] sm:text-[20px] leading-[26px] sm:leading-[32px] font-normal font-bdo text-[#80899D] m-0 max-w-[800px] text-center md:text-left mx-auto md:mx-0">
-            Müxtəlif sahələrdən olan müştərilərimiz üçün etibarlı və innovativ İT həlləri təqdim edirik. Hər layihədə keyfiyyət və uzunmüddətli əməkdaşlıq əsas prioritetimizdir.
-          </p>
+          <p appReveal revealDirection="left" [revealDelay]="100" class="text-[16px] sm:text-[20px] leading-[26px] sm:leading-[32px] font-normal font-bdo text-[#80899D] m-0 max-w-[800px] text-center md:text-left mx-auto md:mx-0" [innerHTML]="body() || t().partnersDescription"></p>
         </div>
 
         <!-- Third Row: Continuous Partner Logos Marquee -->
@@ -51,7 +50,7 @@ import { RevealDirective } from '../../../../shared/ui/reveal/reveal.directive';
             routerLink="/partners"
             class="group inline-flex h-[48px] w-full items-center justify-center gap-1.5 whitespace-nowrap rounded-[12px] bg-[#F7F9FC] px-6 font-bdo text-[16px] font-medium leading-none text-[#4343FF] transition-colors duration-300 hover:text-[#0000AD] focus-visible:text-[#0000AD] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0000AD] focus-visible:ring-offset-2"
           >
-            <span class="font-bdo font-bold transition-colors duration-300 group-hover:text-[#0000AD] group-focus-visible:text-[#0000AD]">20+ tərəfdaşın hamısını göstər</span>
+            <span class="font-bdo font-bold transition-colors duration-300 group-hover:text-[#0000AD] group-focus-visible:text-[#0000AD]">{{ buttonText() || t().showAllPartners }}</span>
             <span
               aria-hidden="true"
               class="h-5 w-5 bg-current transition-colors duration-300"
@@ -65,9 +64,19 @@ import { RevealDirective } from '../../../../shared/ui/reveal/reveal.directive';
   `
 })
 export class PartnersSectionComponent {
+  private readonly translationService = inject(TranslationService);
+  readonly t = this.translationService.translations;
+
+  title = input<string | undefined>(undefined);
+  body = input<string | undefined>(undefined);
+  buttonText = input<string | undefined>(undefined);
   items = input<any[] | undefined>(undefined);
+
   readonly partners = computed(() => {
     const list = this.items();
-    return (list && list.length > 0) ? list : PARTNERS;
+    if (list && list.length > 0) {
+      return list;
+    }
+    return PARTNERS;
   });
 }

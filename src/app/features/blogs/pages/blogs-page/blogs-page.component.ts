@@ -6,6 +6,7 @@ import {RevealDirective} from '../../../../shared/ui/reveal/reveal.directive';
 import {BlogCardComponent} from '../../../../shared/ui/blog-card/blog-card.component';
 import {PublicApiService} from '../../../../core/services/public-api.service';
 import {LanguageService} from '../../../../core/services/language.service';
+import {TranslationService} from '../../../../core/services/translation.service';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 import {switchMap, catchError, of, forkJoin} from 'rxjs';
 
@@ -25,7 +26,7 @@ import {switchMap, catchError, of, forkJoin} from 'rxjs';
           appReveal revealDirection="up" [revealDelay]="0"
           class="font-bdo font-bold text-[36px] md:text-[48px] lg:text-[60px] leading-[1.2] lg:leading-[40px] tracking-normal text-center text-[#0A1642] mb-16 md:mb-24"
         >
-          Bloqlar
+          {{ heroTitle() || t().nav.blog }}
         </h1>
 
         <!-- Main Layout -->
@@ -48,7 +49,7 @@ import {switchMap, catchError, of, forkJoin} from 'rxjs';
                       {{ fb.title }}
                     </h2>
                     <p class="font-bdo font-normal text-[16px] leading-[22px] text-[#80899D] mb-8 line-clamp-4 lg:line-clamp-none">
-                      {{ fb.shortDescription || fb.description || '' }}
+                      {{ fb.excerpt || fb.shortDescription || fb.description || '' }}
                     </p>
                     
                     <div class="mt-auto flex flex-wrap items-center gap-3">
@@ -59,16 +60,16 @@ import {switchMap, catchError, of, forkJoin} from 'rxjs';
                         {{ fb.categoryName || fb.category || 'İcmal' }}
                       </div>
                       <span class="font-bdo font-normal text-[16px] leading-[28px] text-[#80899D] shrink-0 whitespace-nowrap">
-                        {{ fb.publishedAt || fb.date }}
+                        {{ formatDate(fb.publishedAt || fb.date) }}
                       </span>
                     </div>
                   </div>
 
                   <!-- Image -->
-                  @if (fb.coverImage || fb.coverImageUrl || fb.imageUrl) {
+                  @if (fb.coverImageUrl || fb.coverImage || fb.imageUrl) {
                     <div class="w-full lg:max-w-[402px] h-[250px] lg:h-[414px] shrink-0 rounded-[12px] overflow-hidden flex-1 lg:flex-none">
                       <img 
-                        [src]="fb.coverImage || fb.coverImageUrl || fb.imageUrl" 
+                        [src]="fb.coverImageUrl || fb.coverImage || fb.imageUrl" 
                         [alt]="fb.title" 
                         class="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105 group-focus-visible:scale-105"
                       />
@@ -86,7 +87,7 @@ import {switchMap, catchError, of, forkJoin} from 'rxjs';
             <!-- Section Title with Divider -->
             <div appReveal revealDirection="right" [revealDelay]="150" class="flex items-center gap-4 mb-2">
               <h2 class="font-bdo font-bold text-[24px] leading-[28px] text-[#0A1642] whitespace-nowrap m-0">
-                Yeniliklər
+                {{ latestNewsTitle() || 'Yeniliklər' }}
               </h2>
               <div class="flex-grow h-[1px] bg-[#E2E8F0]"></div>
             </div>
@@ -111,7 +112,7 @@ import {switchMap, catchError, of, forkJoin} from 'rxjs';
                       {{ news.categoryName || news.category || 'İcmal' }}
                     </div>
                     <span class="font-bdo font-normal text-[16px] leading-[28px] text-[#80899D] shrink-0 whitespace-nowrap">
-                      {{ news.publishedAt || news.date }}
+                      {{ formatDate(news.publishedAt || news.date) }}
                     </span>
                   </div>
                 </a>
@@ -130,11 +131,11 @@ import {switchMap, catchError, of, forkJoin} from 'rxjs';
           <!-- Title & Tabs -->
           <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10 md:mb-16">
             <h2 appReveal revealDirection="left" class="font-bdo font-bold text-[36px] md:text-[48px] lg:text-[60px] leading-[44px] md:leading-[56px] lg:leading-[70px] text-[#0A1642] m-0 text-center md:text-left">
-              Ən son məqalələr
+              {{ recentArticlesTitle() || t().latestArticles }}
             </h2>
             
             <div appReveal revealDirection="right" [revealDelay]="100" class="flex items-center gap-1 bg-[#F7F9FC] p-[10px] rounded-[12px] overflow-x-auto mx-auto md:mx-0 w-full md:w-auto max-w-full no-scrollbar">
-              @for (tab of categories(); track tab.id) {
+              @for (tab of displayCategories(); track tab.id) {
                 <button 
                   type="button"
                   (click)="selectTab(tab.id)"
@@ -160,43 +161,48 @@ import {switchMap, catchError, of, forkJoin} from 'rxjs';
             }
           </div>
           
-          <!-- Pagination -->
-          @if (totalPages() > 1) {
-            <div appReveal revealDirection="up" [revealDelay]="200" class="flex items-center justify-center relative h-[48px]">
-              @if (currentPage() > 1) {
-                <button 
+          <!-- Pagination UI (matching Services Page) -->
+          <div
+            appReveal revealDirection="up"
+            class="flex items-center justify-between mt-12 w-full max-w-[1200px] mx-auto"
+          >
+            <!-- Prev Page Button -->
+            <div class="w-11 h-11">
+              @if (hasPrev()) {
+                <button
                   type="button"
                   (click)="prevPage()"
-                  class="absolute left-0 w-[48px] h-[48px] bg-[#F7F9FC] hover:bg-[#E2E8F0] text-[#0A1642] rounded-[12px] flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0A1642]"
                   aria-label="Previous page"
+                  class="w-11 h-11 rounded-[14px] bg-[#F7F9FC] hover:bg-[#EBF0F7] text-[#0000FE] flex items-center justify-center transition-colors focus:outline-none cursor-pointer"
                 >
-                  <span
-                    aria-hidden="true"
-                    class="h-5 w-5 bg-current rotate-180 transition-transform"
-                    style="mask: url('/assets/icons/right.svg') no-repeat center / contain; -webkit-mask: url('/assets/icons/right.svg') no-repeat center / contain;"
-                  ></span>
+                  <svg class="w-5 h-5 rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                  </svg>
                 </button>
               }
-              
-              <span class="font-bdo font-medium text-[16px] text-[#0A1642]">
-                {{ currentPage() }}/{{ totalPages() }}
-              </span>
-              
-              <button 
-                type="button"
-                (click)="nextPage()"
-                [disabled]="currentPage() >= totalPages()"
-                class="absolute right-0 w-[48px] h-[48px] bg-[#F7F9FC] hover:bg-[#E2E8F0] text-[#0A1642] rounded-[12px] flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0A1642] disabled:opacity-50 disabled:cursor-not-allowed"
-                aria-label="Next page"
-              >
-                <span
-                  aria-hidden="true"
-                  class="h-5 w-5 bg-current"
-                  style="mask: url('/assets/icons/right.svg') no-repeat center / contain; -webkit-mask: url('/assets/icons/right.svg') no-repeat center / contain;"
-                ></span>
-              </button>
             </div>
-          }
+
+            <!-- Page Indicator -->
+            <span class="font-bdo font-normal text-[14px] md:text-[16px] text-[#80899D]">
+              {{ currentPage() }}/{{ totalPages() }}
+            </span>
+
+            <!-- Next Page Button -->
+            <div class="w-11 h-11">
+              @if (hasNext()) {
+                <button
+                  type="button"
+                  (click)="nextPage()"
+                  aria-label="Next page"
+                  class="w-11 h-11 rounded-[14px] bg-[#F7F9FC] hover:bg-[#EBF0F7] text-[#0000FE] flex items-center justify-center transition-colors focus:outline-none cursor-pointer"
+                >
+                  <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                  </svg>
+                </button>
+              }
+            </div>
+          </div>
         </div>
       </section>
     </div>
@@ -205,60 +211,101 @@ import {switchMap, catchError, of, forkJoin} from 'rxjs';
 export class BlogsPageComponent {
     private readonly apiService = inject(PublicApiService);
     private readonly languageService = inject(LanguageService);
+    private readonly translationService = inject(TranslationService);
     private readonly destroyRef = inject(DestroyRef);
+
+    readonly t = this.translationService.translations;
 
     allBlogsMock = ALL_BLOGS;
 
-    readonly featuredBlog = signal<any>(this.allBlogsMock.find(b => b.slug === 'iyun-sertifikat') || this.allBlogsMock[0]);
-    readonly newsBlogs = signal<any[]>(this.allBlogsMock.filter(b => b.slug === 'tehlukesizlik-it' || b.slug === 'it-konsaltinq-merhele'));
+    readonly heroTitle = signal<string | undefined>(undefined);
+    readonly latestNewsTitle = signal<string | undefined>(undefined);
+    readonly recentArticlesTitle = signal<string | undefined>(undefined);
 
-    readonly categories = signal<{ id: string | number; name: string }[]>([
-      { id: 'all', name: 'Hamısı' },
-      { id: 'Texnologiya', name: 'Texnologiya' },
-      { id: 'Elm', name: 'Elm' },
-      { id: 'İcmal', name: 'İcmal' },
-      { id: 'Biznes', name: 'Biznes' }
-    ]);
+    readonly featuredBlog = signal<any>(null);
+    readonly newsBlogs = signal<any[]>([]);
+
+    readonly apiCategories = signal<{ id: string | number; name: string }[]>([]);
+    readonly displayCategories = computed(() => {
+      const cats = this.apiCategories();
+      return [{ id: 'all', name: this.t().blog.filterAll }, ...cats];
+    });
+
     readonly selectedTab = signal<string | number>('all');
     readonly currentPage = signal<number>(1);
-
-    readonly paginatedBlogs = signal<any[]>(this.allBlogsMock.slice(0, 6));
+    readonly itemsPerPage = 6;
     readonly totalPages = signal<number>(1);
+    readonly hasPrev = signal<boolean>(false);
+    readonly hasNext = signal<boolean>(false);
+
+    readonly paginatedBlogs = signal<any[]>([]);
 
     constructor() {
       // Reload on locale change
       this.languageService.locale$.pipe(
-        switchMap(() => forkJoin({
+        switchMap((locale) => forkJoin({
+          featuredRes: this.apiService.getFeaturedBlogs(locale).pipe(catchError(() => of([]))),
           cats: this.apiService.getBlogCategories().pipe(catchError(() => of([]))),
-          topPosts: this.apiService.getBlogs(1, 10).pipe(catchError(() => of(null))),
+          pageContent: this.apiService.getPageContents('blog', locale).pipe(catchError(() => of(null)))
         })),
         takeUntilDestroyed(this.destroyRef)
-      ).subscribe(({ cats, topPosts }) => {
+      ).subscribe(({ featuredRes, cats, pageContent }) => {
         if (cats && cats.length > 0) {
-          this.categories.set([
-            { id: 'all', name: 'Hamısı' },
-            ...cats
-          ]);
+          this.apiCategories.set(cats);
         }
-        if (topPosts && topPosts.data && topPosts.data.length > 0) {
-          const list = topPosts.data;
-          this.featuredBlog.set(list[0]);
-          this.newsBlogs.set(list.slice(1, 3));
+        if (Array.isArray(featuredRes) && featuredRes.length > 0) {
+          this.featuredBlog.set(featuredRes[0]);
+          this.newsBlogs.set(featuredRes.slice(1, 3));
+        } else {
+          this.featuredBlog.set(this.allBlogsMock[0]);
+          this.newsBlogs.set(this.allBlogsMock.slice(1, 3));
         }
+
+        if (pageContent?.sections) {
+          const secs = pageContent.sections;
+          if (secs.hero?.title) {
+            this.heroTitle.set(secs.hero.title);
+          }
+          if (secs.latest_news?.title) {
+            this.latestNewsTitle.set(secs.latest_news.title);
+          }
+          if (secs.recent_articles?.title) {
+            this.recentArticlesTitle.set(secs.recent_articles.title);
+          }
+        }
+
         this.loadBlogs();
       });
     }
 
-    loadBlogs() {
+    handleBlogsResponse(res: any) {
+      if (res && res.data) {
+        const list = Array.isArray(res.data) ? res.data : (Array.isArray(res) ? res : []);
+        this.paginatedBlogs.set(list);
+        if (res.meta) {
+          const meta = res.meta;
+          this.currentPage.set(meta.current_page ?? 1);
+          this.totalPages.set(meta.total_pages ?? 1);
+          this.hasPrev.set(meta.has_prev ?? (meta.current_page > 1));
+          this.hasNext.set(meta.has_next ?? (meta.current_page < meta.total_pages));
+        }
+      }
+    }
+
+    loadBlogs(locale?: string) {
       const catId = this.selectedTab() === 'all' ? undefined : this.selectedTab();
-      this.apiService.getBlogs(this.currentPage(), 6, catId).pipe(
+      const currentLocale = locale || this.languageService.currentLocale();
+      this.apiService.getBlogs(this.currentPage(), this.itemsPerPage, catId, currentLocale).pipe(
         catchError(() => of(null))
       ).subscribe((res) => {
-        if (res && res.data) {
-          this.paginatedBlogs.set(res.data);
-          this.totalPages.set(res.meta?.total_pages || 1);
-        }
+        this.handleBlogsResponse(res);
       });
+    }
+
+    loadPage(page: number): void {
+      this.currentPage.set(page);
+      this.scrollToTop();
+      this.loadBlogs();
     }
 
     selectTab(tab: string | number) {
@@ -268,18 +315,14 @@ export class BlogsPageComponent {
     }
 
     nextPage() {
-      if (this.currentPage() < this.totalPages()) {
-        this.currentPage.update(p => p + 1);
-        this.scrollToTop();
-        this.loadBlogs();
+      if (this.hasNext()) {
+        this.loadPage(this.currentPage() + 1);
       }
     }
 
     prevPage() {
-      if (this.currentPage() > 1) {
-        this.currentPage.update(p => p - 1);
-        this.scrollToTop();
-        this.loadBlogs();
+      if (this.hasPrev()) {
+        this.loadPage(this.currentPage() - 1);
       }
     }
 
@@ -290,15 +333,52 @@ export class BlogsPageComponent {
       }
     }
 
-    getCategoryColor(category: string): string {
-      if (!category) return '#78D995';
-      const cat = category.toLowerCase();
-      if (cat.includes('icmal')) return '#78D995';
-      if (cat.includes('məhsul')) return '#FFC778';
-      if (cat.includes('texnologiya')) return '#82B4FF';
-      if (cat.includes('araşdırma')) return '#D5ADFF';
-      if (cat.includes('elm')) return '#48BB78';
-      if (cat.includes('biznes')) return '#63B3ED';
-      return '#78D995';
+    formatDate(dateStr?: string | null): string {
+      if (!dateStr) return '';
+      const date = new Date(dateStr);
+      if (isNaN(date.getTime())) return String(dateStr);
+
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const month = months[date.getMonth()];
+      const day = date.getDate();
+      const year = date.getFullYear();
+
+      return `${month} ${day}, ${year}`;
+    }
+
+    getCategoryColor(category?: string | null): string {
+      if (!category || !category.trim()) return '#78D995';
+
+      const cat = category.toLowerCase().trim();
+
+      if (cat.includes('texnologiya') || cat.includes('technology')) {
+        return '#78D995';
+      }
+
+      if (cat.includes('araşdırma') || cat.includes('arasdirma') || cat.includes('research')) {
+        return '#82B4FF';
+      }
+
+      if (cat.includes('məhsul') || cat.includes('mehsul') || cat.includes('product')) {
+        return '#FFC778';
+      }
+
+      const palette = [
+        '#78D995',
+        '#82B4FF',
+        '#FFC778',
+        '#D5ADFF',
+        '#4FD1C5',
+        '#FF9E78',
+        '#F6AD55'
+      ];
+
+      let hash = 0;
+      for (let i = 0; i < cat.length; i++) {
+        hash = cat.charCodeAt(i) + ((hash << 5) - hash);
+      }
+
+      const index = Math.abs(hash) % palette.length;
+      return palette[index];
     }
 }

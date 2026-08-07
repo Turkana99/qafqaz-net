@@ -1,7 +1,8 @@
-import { ChangeDetectionStrategy, Component, computed, signal, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, signal, input, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { EQUIPMENT_CATEGORIES, EquipmentCategory } from '../../data/equipment.data';
 import { RevealDirective } from '../../../../shared/ui/reveal/reveal.directive';
+import { TranslationService } from '../../../../core/services/translation.service';
 
 @Component({
   selector: 'app-equipment-section',
@@ -23,8 +24,7 @@ import { RevealDirective } from '../../../../shared/ui/reveal/reveal.directive';
               [revealDelay]="0"
               class="font-bdo font-bold text-[32px] leading-[44px] md:text-[42px] md:leading-[50px] lg:text-[40px] lg:leading-[56px] text-[#0A1642] tracking-normal text-left mb-8 sm:mb-10 m-0"
             >
-              İşiniz üçün<br class="hidden sm:block" />
-              doğru avadanlıqlar
+              {{ t().productsTitle }}
             </h2>
 
             <!-- Category Navigation List -->
@@ -189,6 +189,9 @@ import { RevealDirective } from '../../../../shared/ui/reveal/reveal.directive';
   ],
 })
 export class EquipmentSectionComponent {
+  private readonly translationService = inject(TranslationService);
+  readonly t = this.translationService.translations;
+
   readonly categories = input<any[] | undefined>(undefined);
   readonly products = input<any[] | undefined>(undefined);
   readonly selectedCategoryId = signal<string>(EQUIPMENT_CATEGORIES[0].id);

@@ -87,10 +87,10 @@ export class ButtonComponent {
         sizeClass = 'px-8 py-4 text-base sm:text-lg rounded-full';
         break;
       case 'nav':
-        sizeClass = 'w-[184px] h-[54px] rounded-xl px-6 gap-3';
+        sizeClass = 'w-auto h-[54px] rounded-xl px-6 gap-3 whitespace-nowrap';
         break;
       case 'hero':
-        sizeClass = 'w-[203px] h-[64px] rounded-xl px-6 gap-3';
+        sizeClass = 'w-auto h-[64px] rounded-xl px-6 gap-3 whitespace-nowrap';
         break;
     }
 

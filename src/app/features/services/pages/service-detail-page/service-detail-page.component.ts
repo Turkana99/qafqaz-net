@@ -44,7 +44,7 @@ import {ServiceDetail} from '../../../../core/models/api.model';
               <button 
                 appReveal revealDirection="up" [revealDelay]="200"
                 (click)="openModal()"
-                class="group inline-flex items-center justify-center font-bdo font-medium text-[16px] text-white btn-transition focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#4343FF] active:scale-[0.98] btn-gradient w-[204px] h-[52px] md:w-[203px] md:h-[64px] rounded-[16px] px-6 gap-[6px]"
+                class="group inline-flex items-center justify-center font-bdo font-medium text-[16px] text-white btn-transition focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#4343FF] active:scale-[0.98] btn-gradient w-auto h-[52px] md:h-[64px] rounded-[16px] px-6 gap-[6px] whitespace-nowrap"
               >
                 <span>Sorğunu göndər</span>
                 <img src="assets/icons/right.svg" alt="Right Arrow" class="w-5 h-5 object-contain transition-transform duration-300 group-hover:translate-x-1 brightness-0 invert">

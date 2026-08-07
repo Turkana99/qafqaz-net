@@ -7,8 +7,9 @@ import {RevealDirective} from '../../../../shared/ui/reveal/reveal.directive';
 import {BlogCardComponent} from '../../../../shared/ui/blog-card/blog-card.component';
 import {PublicApiService} from '../../../../core/services/public-api.service';
 import {LanguageService} from '../../../../core/services/language.service';
+import {TranslationService} from '../../../../core/services/translation.service';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
-import {switchMap, catchError, of, combineLatest} from 'rxjs';
+import {switchMap, catchError, of, combineLatest, forkJoin} from 'rxjs';
 
 @Component({
     selector: 'app-blog-detail-page',
@@ -35,7 +36,7 @@ import {switchMap, catchError, of, combineLatest} from 'rxjs';
               {{ item.categoryName || item.category || 'İcmal' }}
             </div>
             <span class="font-bdo font-normal text-[16px] leading-[28px] text-[#80899D] shrink-0 whitespace-nowrap">
-              {{ item.publishedAt || item.date }}
+              {{ formatDate(item.publishedAt || item.date) }}
             </span>
           </div>
 
@@ -64,14 +65,11 @@ import {switchMap, catchError, of, combineLatest} from 'rxjs';
       </div>
 
       <!-- Article Content Section -->
-      <section class="w-full bg-[#FFFFFF] py-16 md:py-24">
-        <div 
-          appReveal revealDirection="up" [revealDelay]="0"
-          class="w-full max-w-[800px] mx-auto px-6 md:px-0"
-        >
-          <!-- Rich text body rendering -->
+      <section class="w-full bg-[#FFFFFF] py-16 md:py-24 overflow-hidden">
+        <div class="container-main">
           <div 
-            class="font-bdo text-[16px] leading-[1.6] text-[#0A1642] prose prose-lg max-w-none prose-headings:text-[#0A1642] prose-headings:font-bdo prose-headings:font-bold prose-a:text-[#4343FF]"
+            appReveal revealDirection="up" [revealDelay]="0"
+            class="w-full max-w-[800px] mx-auto rich-text-content [word-break:break-word] [overflow-wrap:break-word] text-[#0A1642]"
             [innerHTML]="item.content || item.body || defaultContent"
           ></div>
         </div>
@@ -87,7 +85,7 @@ import {switchMap, catchError, of, combineLatest} from 'rxjs';
               appReveal revealDirection="left" [revealDelay]="0"
               class="font-bdo font-bold text-[36px] md:text-[48px] lg:text-[60px] leading-[44px] md:leading-[56px] lg:leading-[70px] tracking-normal text-[#0A1642] m-0 text-center md:text-left"
             >
-              Əlaqəli yazılar
+              {{ relatedPostsTitle() || 'Əlaqəli yazılar' }}
             </h2>
             
             <a 
@@ -95,7 +93,7 @@ import {switchMap, catchError, of, combineLatest} from 'rxjs';
               routerLink="/blogs"
               class="group flex items-center justify-center gap-[6px] w-full md:w-[204px] h-[48px] rounded-[12px] px-[24px] bg-[#FFFFFF] shadow-[0_2px_4px_0_rgba(0,0,0,0.05)] transition-all duration-300 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4343FF] focus-visible:ring-offset-2 mx-auto md:mx-0"
             >
-              <span class="font-bdo font-medium text-[16px] leading-[100%] text-[#4343FF]">Daha çox göstər</span>
+              <span class="font-bdo font-medium text-[16px] leading-[100%] text-[#4343FF]">{{ t().blog.showMoreRelated }}</span>
               <img src="assets/icons/serviceRightIcon.svg" alt="Right Arrow" class="w-5 h-5 object-contain transition-transform duration-300 group-hover:translate-x-1">
             </a>
           </div>
@@ -120,52 +118,108 @@ import {switchMap, catchError, of, combineLatest} from 'rxjs';
         </div>
       </div>
     }
-  `
+  `,
+  styles: [`
+    :host ::ng-deep .rich-text-content {
+      width: 100%;
+      max-width: 100%;
+      overflow-x: hidden;
+      word-break: break-word;
+      overflow-wrap: break-word;
+      color: #0A1642;
+    }
+
+    :host ::ng-deep .rich-text-content * {
+      max-width: 100%;
+      box-sizing: border-box;
+    }
+
+    :host ::ng-deep .rich-text-content img,
+    :host ::ng-deep .rich-text-content video,
+    :host ::ng-deep .rich-text-content iframe,
+    :host ::ng-deep .rich-text-content table,
+    :host ::ng-deep .rich-text-content pre {
+      max-width: 100% !important;
+      height: auto;
+      word-break: break-word;
+      overflow-wrap: break-word;
+    }
+
+    :host ::ng-deep .rich-text-content a {
+      color: #4343FF;
+      word-break: break-all;
+      overflow-wrap: break-word;
+    }
+
+    :host ::ng-deep .rich-text-content p,
+    :host ::ng-deep .rich-text-content h1,
+    :host ::ng-deep .rich-text-content h2,
+    :host ::ng-deep .rich-text-content h3,
+    :host ::ng-deep .rich-text-content h4,
+    :host ::ng-deep .rich-text-content h5,
+    :host ::ng-deep .rich-text-content h6,
+    :host ::ng-deep .rich-text-content ul,
+    :host ::ng-deep .rich-text-content ol,
+    :host ::ng-deep .rich-text-content li {
+      word-break: break-word;
+      overflow-wrap: break-word;
+    }
+  `]
 })
 export class BlogDetailPageComponent {
     private readonly route = inject(ActivatedRoute);
     private readonly apiService = inject(PublicApiService);
     private readonly languageService = inject(LanguageService);
+    private readonly translationService = inject(TranslationService);
     private readonly titleService = inject(Title);
     private readonly metaService = inject(Meta);
     private readonly destroyRef = inject(DestroyRef);
 
+    readonly t = this.translationService.translations;
+
     readonly blog = signal<any | null>(null);
     readonly relatedBlogs = signal<any[]>(ALL_BLOGS.slice(0, 2));
+    readonly relatedPostsTitle = signal<string | undefined>(undefined);
 
     constructor() {
       combineLatest([
         this.route.paramMap,
         this.languageService.locale$
       ]).pipe(
-        switchMap(([params]) => {
+        switchMap(([params, locale]) => {
           const slug = params.get('slug');
-          if (!slug) return of(null);
-          return this.apiService.getBlogBySlug(slug).pipe(
-            catchError(() => {
-              const mock = ALL_BLOGS.find(b => b.slug === slug);
-              return of(mock || null);
-            })
-          );
+          return forkJoin({
+            postRes: slug ? this.apiService.getBlogBySlug(slug).pipe(
+              catchError(() => {
+                const mock = ALL_BLOGS.find(b => b.slug === slug);
+                return of(mock || null);
+              })
+            ) : of(null),
+            pageContent: this.apiService.getPageContents('blog', locale).pipe(catchError(() => of(null)))
+          });
         }),
         takeUntilDestroyed(this.destroyRef)
-      ).subscribe((post: any) => {
-        this.blog.set(post);
-        if (post) {
-          const pageTitle = post.metaTitle || post.title || 'QafqazNet Blog';
+      ).subscribe(({ postRes, pageContent }: any) => {
+        if (pageContent?.sections?.related_posts?.title) {
+          this.relatedPostsTitle.set(pageContent.sections.related_posts.title);
+        }
+
+        this.blog.set(postRes);
+        if (postRes) {
+          const pageTitle = postRes.metaTitle || postRes.title || 'QafqazNet Blog';
           this.titleService.setTitle(pageTitle);
 
-          const desc = post.metaDescription || post.shortDescription || post.description || '';
+          const desc = postRes.metaDescription || postRes.shortDescription || postRes.description || '';
           if (desc) {
             this.metaService.updateTag({ name: 'description', content: desc });
           }
 
           // Fetch related posts
-          this.apiService.getBlogs(1, 4, post.categoryId).pipe(
+          this.apiService.getBlogs(1, 4, postRes.categoryId).pipe(
             catchError(() => of(null))
           ).subscribe((res) => {
             if (res && res.data) {
-              const filtered = res.data.filter(b => b.slug !== post.slug).slice(0, 2);
+              const filtered = res.data.filter(b => b.slug !== postRes.slug).slice(0, 2);
               if (filtered.length > 0) {
                 this.relatedBlogs.set(filtered);
               }
@@ -191,6 +245,19 @@ export class BlogDetailPageComponent {
     
     <p>İT konsaltinq, biznesinizin yalnız bu gününü deyil, sabahını da təminata alan strateji bir investisiyadır. Rəqəmsal dünyada geri qalmamaq və biznes proseslərinizi optimallaşdırmaq üçün peşəkar dəstəkdən yararlanmaq şərtdir.</p>
   `;
+
+    formatDate(dateStr?: string | null): string {
+      if (!dateStr) return '';
+      const date = new Date(dateStr);
+      if (isNaN(date.getTime())) return String(dateStr);
+
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const month = months[date.getMonth()];
+      const day = date.getDate();
+      const year = date.getFullYear();
+
+      return `${month} ${day}, ${year}`;
+    }
 
     getCategoryColor(category: string): string {
       if (!category) return '#78D995';

@@ -8,6 +8,7 @@ import { RequestModalService } from '../../../../shared/services/request-modal.s
 import { ParticleBackgroundComponent } from '../../../../shared/ui/particle-background/particle-background.component';
 import { PublicApiService } from '../../../../core/services/public-api.service';
 import { LanguageService } from '../../../../core/services/language.service';
+import { TranslationService } from '../../../../core/services/translation.service';
 
 export type CallToActionVariant = 'light' | 'dark';
 
@@ -49,7 +50,7 @@ interface TrustedCompanyLogo {
             <span
               class="font-bdo text-white font-medium text-[13px] sm:text-[15px] whitespace-nowrap"
             >
-              100+ şirkət güvənlə bizi seçir
+              {{ t().shared.ctaTrustBadge }}
             </span>
           </a>
         </div>
@@ -93,14 +94,14 @@ interface TrustedCompanyLogo {
               size="hero"
               (click)="openModal()"
               trailingIcon="assets/icons/right.svg"
-              customClass="w-full md:w-[203px]"
+              customClass="w-full md:w-auto"
             >
-              Sorğu göndər
+              {{ t().shared.ctaButton }}
             </app-button>
           </div>
 
           <!-- Trust Button (Desktop Instance) -->
-          <div class="hidden md:flex w-full md:w-[360px] justify-center">
+          <div class="hidden md:flex w-full md:w-auto justify-center">
             <a href="#" [class]="trustButtonClass()" [style]="trustButtonStyle()">
               <div class="flex items-center shrink-0">
                 @for (logo of trustLogos; track logo.src; let i = $index) {
@@ -116,7 +117,7 @@ interface TrustedCompanyLogo {
               <span
                 class="font-bdo text-white font-medium text-[13px] sm:text-[15px] whitespace-nowrap"
               >
-                100+ şirkət güvənlə bizi seçir
+                {{ t().shared.ctaTrustBadge }}
               </span>
             </a>
           </div>
@@ -130,7 +131,10 @@ export class CallToActionSectionComponent {
   private modalService = inject(RequestModalService);
   private apiService = inject(PublicApiService);
   private languageService = inject(LanguageService);
+  private translationService = inject(TranslationService);
   private destroyRef = inject(DestroyRef);
+
+  readonly t = this.translationService.translations;
 
   readonly ctaTitle = signal<string>('Rəqəmsal həllərinizə buradan bizimlə başlayın');
   readonly ctaDescription = signal<string>('Müasir texnologiyalar və təcrübəli komanda ilə rəqəmsal transformasiyanızı sürətləndiririk.');
@@ -138,7 +142,7 @@ export class CallToActionSectionComponent {
 
   constructor() {
     this.languageService.locale$.pipe(
-      switchMap(() => this.apiService.getPageContents('shared').pipe(
+      switchMap((locale) => this.apiService.getPageContents('shared', locale).pipe(
         catchError(() => of(null))
       )),
       takeUntilDestroyed(this.destroyRef)
@@ -150,6 +154,8 @@ export class CallToActionSectionComponent {
         }
         if (cta.body) {
           this.ctaDescription.set(cta.body);
+        } else if (cta.subtitle) {
+          this.ctaDescription.set(cta.subtitle);
         }
         this.ctaImageUrl.set(cta.imageUrl || null);
       }
@@ -187,8 +193,8 @@ export class CallToActionSectionComponent {
 
   trustButtonClass = computed(() => {
     return this.variant() === 'dark'
-      ? 'flex items-center justify-center md:justify-start w-full md:w-[360px] h-[56px] sm:h-[64px] rounded-[12px] gap-[12px] px-2 py-2 border border-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-white hover:bg-white/10 transition-colors duration-300'
-      : 'flex items-center justify-center md:justify-start w-full md:w-[360px] h-[56px] sm:h-[64px] rounded-[12px] gap-[12px] px-2 py-2 border border-[#F7F9FC] bg-[#0000FE] backdrop-blur-[15px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#0000FE] hover:bg-[#0000FE]/90 transition-colors duration-300';
+      ? 'flex items-center justify-center md:justify-start w-full md:w-auto h-[56px] sm:h-[64px] rounded-[12px] gap-[12px] px-4 sm:px-6 py-2 border border-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-white hover:bg-white/10 transition-colors duration-300'
+      : 'flex items-center justify-center md:justify-start w-full md:w-auto h-[56px] sm:h-[64px] rounded-[12px] gap-[12px] px-4 sm:px-6 py-2 border border-[#F7F9FC] bg-[#0000FE] backdrop-blur-[15px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#0000FE] hover:bg-[#0000FE]/90 transition-colors duration-300';
   });
 
   trustButtonStyle = computed(() => {

@@ -9,7 +9,7 @@ export const languageInterceptor: HttpInterceptorFn = (req, next) => {
   const languageService = inject(LanguageService);
   const locale = languageService.currentLocale();
 
-  if (req.url.includes('/public')) {
+  if (req.url.includes('/public') && !req.url.includes('/public/job-applications')) {
     const clonedReq = req.clone({
       setParams: {
         locale: locale

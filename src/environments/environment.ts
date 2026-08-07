@@ -7,7 +7,8 @@ export const environment = {
     blogs: {
         getAllBlogCategories: `${apiUrl}/public/blog/categories`,
         getAllBlogs: `${apiUrl}/public/blog/posts`,
-        getSelectionBlogs: `${apiUrl}/public/blog/posts/{slug}`
+        getSelectionBlogs: `${apiUrl}/public/blog/posts/{slug}`,
+        getJumbotronBlogs: `${apiUrl}/public/blog/posts/featured`
     },
     contact: {
         sendContactMessage: `${apiUrl}/public/contact`
@@ -38,7 +39,7 @@ export const environment = {
     vacancies: {
         getAllVacancies: `${apiUrl}/public/vacancies`,
         getVacancyDetails: `${apiUrl}/public/vacancies/{slug}`,
-        sendJobApplication: `${apiUrl}/public/vacancies/apply`
+        sendJobApplication: `${apiUrl}/public/job-applications`
     },
     pageContents: {
         getAllPageContents: `${apiUrl}/public/page-contents/{pageKey}`

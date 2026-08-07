@@ -152,22 +152,23 @@ export class ServicesPageComponent {
     readonly hasNext = signal(false);
 
     constructor() {
-        this.languageService.locale$.pipe(switchMap(() => this.loadData()), takeUntilDestroyed(this.destroyRef)).subscribe(({servicesRes, pageContent} : any) => {
+        this.languageService.locale$.pipe(switchMap((locale) => this.loadData(locale)), takeUntilDestroyed(this.destroyRef)).subscribe(({servicesRes, pageContent} : any) => {
             this.handleServicesResponse(servicesRes);
             this.handlePageContentResponse(pageContent);
         });
     }
 
-    loadData() {
+    loadData(locale?: string) {
         return forkJoin({
-            servicesRes: this.apiService.getServices(this.currentPage(), this.itemsPerPage).pipe(catchError(() => of(null))),
-            pageContent: this.apiService.getPageContents('services').pipe(catchError(() => of(null)))
+            servicesRes: this.apiService.getServices(this.currentPage(), this.itemsPerPage, locale).pipe(catchError(() => of(null))),
+            pageContent: this.apiService.getPageContents('services', locale).pipe(catchError(() => of(null)))
         });
     }
 
     loadPage(page : number) {
         this.currentPage.set(page);
-        this.apiService.getServices(this.currentPage(), this.itemsPerPage).pipe(catchError(() => of(null))).subscribe((res : any) => {
+        const locale = this.languageService.currentLocale();
+        this.apiService.getServices(this.currentPage(), this.itemsPerPage, locale).pipe(catchError(() => of(null))).subscribe((res : any) => {
             this.handleServicesResponse(res);
         });
     }
@@ -187,7 +188,7 @@ export class ServicesPageComponent {
     }
 
     handlePageContentResponse(pageContent : any) {
-        if (pageContent ?. sections) {
+        if (pageContent?.sections) {
             const sections = pageContent.sections;
             if (sections.hero) {
                 if (sections.hero.title) {
@@ -202,18 +203,10 @@ export class ServicesPageComponent {
                 if (sections.who_can_benefit.title) {
                     this.whoCanBenefitTitle.set(sections.who_can_benefit.title);
                 }
-                if (sections.who_can_benefit.body) {
-                    try {
-                        let parsed = sections.who_can_benefit.body;
-                        if (typeof parsed === 'string') {
-                            parsed = JSON.parse(parsed);
-                        }
-                        if (Array.isArray(parsed)) {
-                            this.whoCanBenefitItems.set(parsed);
-                        }
-                    } catch (e) {
-                        console.error('Error parsing who_can_benefit body JSON', e);
-                    }
+                if (Array.isArray(sections.who_can_benefit.items) && sections.who_can_benefit.items.length > 0) {
+                    const sortedItems = [...sections.who_can_benefit.items].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+                    const mappedTitles: string[] = sortedItems.map((item: any) => item.title || '').filter((t: string) => t.length > 0);
+                    this.whoCanBenefitItems.set(mappedTitles);
                 }
             }
         }

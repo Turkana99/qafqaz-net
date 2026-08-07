@@ -52,7 +52,20 @@ export class PublicApiService {
     );
   }
 
-  getBlogs(page = 1, perPage = 10, categoryId?: string | number): Observable<PaginatedResponse<BlogPost>> {
+  getFeaturedBlogs(locale?: string): Observable<BlogPost[]> {
+    let params = new HttpParams();
+    if (locale) {
+      params = params.set('locale', locale);
+    }
+    return this.http.get<any>(environment.blogs.getJumbotronBlogs, { params }).pipe(
+      map(res => {
+        const items = this.unwrapData<any>(res);
+        return Array.isArray(items) ? items : [];
+      })
+    );
+  }
+
+  getBlogs(page = 1, perPage = 10, categoryId?: string | number, locale?: string): Observable<PaginatedResponse<BlogPost>> {
     let params = new HttpParams()
       .set('page', page.toString())
       .set('perPage', perPage.toString())
@@ -60,6 +73,10 @@ export class PublicApiService {
 
     if (categoryId && categoryId !== 'all' && categoryId !== 0) {
       params = params.set('categoryId', categoryId.toString());
+    }
+
+    if (locale) {
+      params = params.set('locale', locale);
     }
 
     return this.http.get<any>(environment.blogs.getAllBlogs, { params }).pipe(
@@ -114,23 +131,40 @@ export class PublicApiService {
   }
 
   // 5. Job Applications
-  sendJobApplication(payloadOrFormData: FormData | Record<string, any>, cvFile?: File | null): Observable<any> {
+  sendJobApplication(
+    vacancyIdOrPayload: string | FormData | Record<string, any>,
+    fullNameOrCvFile?: string | File | null,
+    email?: string,
+    phone?: string,
+    cvFile?: File | null
+  ): Observable<any> {
     let formData: FormData;
-    if (payloadOrFormData instanceof FormData) {
-      formData = payloadOrFormData;
-    } else {
+
+    if (vacancyIdOrPayload instanceof FormData) {
+      formData = vacancyIdOrPayload;
+    } else if (typeof vacancyIdOrPayload === 'string') {
       formData = new FormData();
-      Object.entries(payloadOrFormData || {}).forEach(([key, value]) => {
-        if (value !== null && value !== undefined) {
-          formData.append(key, String(value));
-        }
-      });
+      formData.append('VacancyId', vacancyIdOrPayload);
+      formData.append('FullName', typeof fullNameOrCvFile === 'string' ? fullNameOrCvFile : '');
+      formData.append('Email', email || '');
+      formData.append('Phone', phone || '');
       if (cvFile) {
-        formData.append('cvFile', cvFile);
-        formData.append('cv', cvFile);
+        formData.append('CvFile', cvFile);
+      }
+    } else {
+      const payload = vacancyIdOrPayload || {};
+      formData = new FormData();
+      formData.append('VacancyId', String(payload['vacancyId'] || payload['VacancyId'] || ''));
+      formData.append('FullName', String(payload['fullName'] || payload['FullName'] || ''));
+      formData.append('Email', String(payload['email'] || payload['Email'] || ''));
+      formData.append('Phone', String(payload['phone'] || payload['Phone'] || ''));
+      const file = (fullNameOrCvFile instanceof File ? fullNameOrCvFile : cvFile);
+      if (file) {
+        formData.append('CvFile', file);
       }
     }
-    const url = (environment as any).vacancies?.sendJobApplication || (environment as any).jobApplications?.sendJobApplication || environment.jobApplication.sendJobApplication;
+
+    const url = environment.jobApplication.sendJobApplication;
     return this.http.post<any>(url, formData);
   }
 
@@ -186,11 +220,15 @@ export class PublicApiService {
   }
 
   // 8. Services
-  getServices(page = 1, perPage = 10): Observable<PaginatedResponse<Service>> {
-    const params = new HttpParams()
+  getServices(page = 1, perPage = 10, locale?: string): Observable<PaginatedResponse<Service>> {
+    let params = new HttpParams()
       .set('page', page.toString())
       .set('perPage', perPage.toString())
       .set('limit', perPage.toString());
+
+    if (locale) {
+      params = params.set('locale', locale);
+    }
 
     return this.http.get<any>(environment.services.getAllServices, { params }).pipe(
       map(res => {
@@ -226,37 +264,55 @@ export class PublicApiService {
   }
 
   // 10. Vacancies
-  getVacancies(page = 1, perPage = 10): Observable<PaginatedResponse<Vacancy>> {
-    const params = new HttpParams()
+  getVacancies(page = 1, pageSize = 10, employmentType?: string | number, locale?: string): Observable<PaginatedResponse<any>> {
+    let params = new HttpParams()
       .set('page', page.toString())
-      .set('perPage', perPage.toString())
-      .set('limit', perPage.toString());
+      .set('pageSize', pageSize.toString());
+
+    if (locale) {
+      params = params.set('locale', locale);
+    }
+
+    if (employmentType !== undefined && employmentType !== null && employmentType !== '') {
+      params = params.set('employmentType', employmentType.toString());
+    }
 
     return this.http.get<any>(environment.vacancies.getAllVacancies, { params }).pipe(
       map(res => {
-        const data = Array.isArray(res?.data) ? res.data : (Array.isArray(res) ? res : []);
+        const rawData = res?.data || res;
+        const data = Array.isArray(rawData) ? rawData : [];
         const meta = res?.meta || {
           current_page: page,
-          total_pages: Math.ceil(data.length / perPage) || 1,
+          per_page: pageSize,
           total: data.length,
-          per_page: perPage
+          total_pages: Math.ceil(data.length / pageSize) || 1,
+          has_next: page < (Math.ceil(data.length / pageSize) || 1),
+          has_prev: page > 1
         };
         return { data, meta };
       })
     );
   }
 
-  getVacancyBySlug(slug: string): Observable<VacancyDetail> {
+  getVacancyBySlug(slug: string, locale?: string): Observable<any> {
     const url = environment.vacancies.getVacancyDetails.replace('{slug}', encodeURIComponent(slug));
-    return this.http.get<any>(url).pipe(
-      map(res => this.unwrapData<VacancyDetail>(res))
+    let params = new HttpParams();
+    if (locale) {
+      params = params.set('locale', locale);
+    }
+    return this.http.get<any>(url, { params }).pipe(
+      map(res => this.unwrapData<any>(res))
     );
   }
 
   // 11. Page Contents
-  getPageContents(pageKey: string): Observable<any> {
+  getPageContents(pageKey: string, locale?: string): Observable<any> {
     const url = environment.pageContents.getAllPageContents.replace('{pageKey}', encodeURIComponent(pageKey));
-    return this.http.get<any>(url).pipe(
+    let params = new HttpParams();
+    if (locale) {
+      params = params.set('locale', locale);
+    }
+    return this.http.get<any>(url, { params }).pipe(
       map(res => this.unwrapData<any>(res))
     );
   }

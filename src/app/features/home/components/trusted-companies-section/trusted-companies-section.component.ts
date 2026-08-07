@@ -1,7 +1,8 @@
-import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
 import { PARTNERS } from '../../../../core/constants/mock-data';
 import { RevealDirective } from '../../../../shared/ui/reveal/reveal.directive';
 import { LogoMarqueeComponent } from '../../../../shared/ui/logo-marquee/logo-marquee.component';
+import { TranslationService } from '../../../../core/services/translation.service';
 
 @Component({
   selector: 'app-trusted-companies-section',
@@ -12,7 +13,7 @@ import { LogoMarqueeComponent } from '../../../../shared/ui/logo-marquee/logo-ma
     <section class="py-8 md:py-12 bg-white border-b border-border">
       <div class="container-main flex items-center gap-6 md:gap-8">
         <p appReveal revealDirection="left" class="hidden md:block shrink-0 font-bdo font-semibold text-[20px] md:text-[24px] leading-none text-[#0A1642] m-0 whitespace-nowrap">
-          100+ şirkət güvənlə bizi seçir
+          {{ t().shared.ctaTrustBadge }}
         </p>
         
         <div appReveal revealDirection="right" [revealDelay]="150" class="grow min-w-0 w-full">
@@ -24,6 +25,9 @@ import { LogoMarqueeComponent } from '../../../../shared/ui/logo-marquee/logo-ma
 })
 export class TrustedCompaniesSectionComponent {
   items = input<any[] | undefined>(undefined);
+  private readonly translationService = inject(TranslationService);
+  readonly t = this.translationService.translations;
+
   readonly partners = computed(() => {
     const list = this.items();
     return (list && list.length > 0) ? list : PARTNERS;

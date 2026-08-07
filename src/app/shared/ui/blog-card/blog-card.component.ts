@@ -27,12 +27,18 @@ import {CommonModule} from '@angular/common';
       
       <!-- Content -->
       <div class="px-2 pt-4 sm:pt-6 pb-3 sm:pb-4 flex flex-col flex-grow">
-        <h3 class="font-bdo font-bold text-[18px] sm:text-[24px] leading-[1.3] md:leading-[32px] text-[#0A1642] mb-4 sm:mb-6 line-clamp-3 group-hover:text-[#4343FF] group-focus-visible:text-[#4343FF] transition-colors duration-300">
+        <h3 class="font-bdo font-bold text-[18px] sm:text-[24px] leading-[1.3] md:leading-[32px] text-[#0A1642] mb-3 sm:mb-4 line-clamp-3 group-hover:text-[#4343FF] group-focus-visible:text-[#4343FF] transition-colors duration-300">
           {{ blog.title }}
         </h3>
+
+        @if (blog.excerpt) {
+          <p class="font-bdo font-normal text-[14px] sm:text-[15px] leading-[22px] text-[#80899D] mb-4 line-clamp-2">
+            {{ blog.excerpt }}
+          </p>
+        }
         
         <!-- Bottom row: Badge and Date -->
-        <div class="mt-auto flex flex-wrap items-center gap-3">
+        <div class="mt-auto flex flex-wrap items-center justify-between gap-3">
           <div 
             class="min-w-max h-[32px] sm:h-[36px] px-3 sm:px-4 rounded-[8px] flex items-center justify-center font-bdo text-[13px] sm:text-[14px] font-medium text-white shrink-0"
             [style.backgroundColor]="getCategoryColor(blog.categoryName || blog.category)"
@@ -40,42 +46,67 @@ import {CommonModule} from '@angular/common';
             {{ blog.categoryName || blog.category || 'İcmal' }}
           </div>
           
-          <span class="font-bdo font-normal text-[14px] sm:text-[16px] leading-[24px] sm:leading-[28px] text-[#80899D] align-middle shrink-0 whitespace-nowrap">
-            {{ blog.publishedAt || blog.date }}
-          </span>
+          @if (formattedDate) {
+            <span class="font-bdo font-normal text-[14px] sm:text-[16px] leading-[24px] sm:leading-[28px] text-[#80899D] align-middle shrink-0 whitespace-nowrap">
+              {{ formattedDate }}
+            </span>
+          }
         </div>
       </div>
     </a>
   `
 })
 export class BlogCardComponent {
-    @Input({required: true})blog !: any;
+    @Input({required: true}) blog !: any;
 
-    getCategoryColor(category : string): string {
-        if (!category) 
-            return '#78D995';
-        
+    get formattedDate(): string {
+        const raw = this.blog?.publishedAt || this.blog?.date;
+        if (!raw) return '';
 
-        const cat = category.toLowerCase();
-        if (cat.includes('icmal')) 
+        const date = new Date(raw);
+        if (isNaN(date.getTime())) return String(raw);
+
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        const month = months[date.getMonth()];
+        const day = date.getDate();
+        const year = date.getFullYear();
+
+        return `${month} ${day}, ${year}`;
+    }
+
+    getCategoryColor(category?: string): string {
+        if (!category || !category.trim()) return '#78D995';
+
+        const cat = category.toLowerCase().trim();
+
+        if (cat.includes('texnologiya') || cat.includes('technology')) {
             return '#78D995';
-        
-        if (cat.includes('məhsul')) 
-            return '#FFC778';
-        
-        if (cat.includes('texnologiya')) 
+        }
+
+        if (cat.includes('araşdırma') || cat.includes('arasdirma') || cat.includes('research')) {
             return '#82B4FF';
-        
-        if (cat.includes('araşdırma')) 
-            return '#D5ADFF';
-        
-        if (cat.includes('elm')) 
-            return '#48BB78';
-        
-        if (cat.includes('biznes')) 
-            return '#63B3ED';
-        
+        }
 
-        return '#78D995';
+        if (cat.includes('məhsul') || cat.includes('mehsul') || cat.includes('product')) {
+            return '#FFC778';
+        }
+
+        const palette = [
+            '#78D995',
+            '#82B4FF',
+            '#FFC778',
+            '#D5ADFF',
+            '#4FD1C5',
+            '#FF9E78',
+            '#F6AD55'
+        ];
+
+        let hash = 0;
+        for (let i = 0; i < cat.length; i++) {
+            hash = cat.charCodeAt(i) + ((hash << 5) - hash);
+        }
+
+        const index = Math.abs(hash) % palette.length;
+        return palette[index];
     }
 }

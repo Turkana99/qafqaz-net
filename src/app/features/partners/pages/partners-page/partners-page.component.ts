@@ -4,6 +4,7 @@ import {PARTNERS} from '../../../../core/constants/mock-data';
 import {RevealDirective} from '../../../../shared/ui/reveal/reveal.directive';
 import {PublicApiService} from '../../../../core/services/public-api.service';
 import {LanguageService} from '../../../../core/services/language.service';
+import {TranslationService} from '../../../../core/services/translation.service';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 import {switchMap, catchError, of} from 'rxjs';
 
@@ -22,7 +23,7 @@ import {switchMap, catchError, of} from 'rxjs';
           appReveal revealDirection="up" [revealDelay]="0"
           class="font-bdo font-bold text-[40px] md:text-[50px] lg:text-[60px] leading-[1.2] lg:leading-[76px] tracking-normal text-center text-[#0A1642] m-0"
         >
-          Tərəfdaşlarımız
+          {{ t().ourPartners }}
         </h1>
       </div>
     </div>
@@ -54,7 +55,10 @@ import {switchMap, catchError, of} from 'rxjs';
 export class PartnersPageComponent {
     private readonly apiService = inject(PublicApiService);
     private readonly languageService = inject(LanguageService);
+    private readonly translationService = inject(TranslationService);
     private readonly destroyRef = inject(DestroyRef);
+
+    readonly t = this.translationService.translations;
 
     readonly partners = signal<any[]>([...PARTNERS]);
 

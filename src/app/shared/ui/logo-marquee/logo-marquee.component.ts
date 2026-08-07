@@ -95,7 +95,7 @@ export interface MarqueeLogo {
       align-items: center;
       flex-wrap: nowrap;
       white-space: nowrap;
-      animation: logo-marquee 18s linear infinite;
+      animation: logo-marquee 12s linear infinite;
       will-change: transform;
     }
 
@@ -134,7 +134,7 @@ export interface MarqueeLogo {
 })
 export class LogoMarqueeComponent {
   logos = input.required<ReadonlyArray<any>>();
-  duration = input<string>('18s');
+  duration = input<string>('12s');
   logoHeight = input<number>(40);
   gap = input<number>(56);
   showFadeMask = input<boolean>(true);

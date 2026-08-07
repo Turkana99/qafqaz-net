@@ -9,6 +9,7 @@ import {CommonModule} from '@angular/common';
 import {RevealDirective} from '../../../../shared/ui/reveal/reveal.directive';
 import {PublicApiService} from '../../../../core/services/public-api.service';
 import {LanguageService} from '../../../../core/services/language.service';
+import {TranslationService} from '../../../../core/services/translation.service';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 import {switchMap, catchError, of} from 'rxjs';
 
@@ -35,7 +36,7 @@ interface FinancialReport {
           appReveal revealDirection="up" [revealDelay]="0"
           class="font-bdo font-bold text-[36px] md:text-[48px] lg:text-[60px] leading-[44px] md:leading-[56px] lg:leading-[76px] tracking-normal text-center text-[#0A1642] m-0"
         >
-          Maliyyə hesabatları
+          {{ t().financialReports }}
         </h1>
       </div>
     </div>
@@ -110,7 +111,10 @@ interface FinancialReport {
 export class FinancialReportsPageComponent {
     private readonly apiService = inject(PublicApiService);
     private readonly languageService = inject(LanguageService);
+    private readonly translationService = inject(TranslationService);
     private readonly destroyRef = inject(DestroyRef);
+
+    readonly t = this.translationService.translations;
 
     readonly reports = signal < FinancialReport[] > ([]);
     readonly currentPage = signal(1);

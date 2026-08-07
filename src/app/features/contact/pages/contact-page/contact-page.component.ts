@@ -1,14 +1,20 @@
 import {
     ChangeDetectionStrategy,
     Component,
+    computed,
     inject,
     HostListener,
-    signal
+    signal,
+    DestroyRef
 } from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {FormBuilder, ReactiveFormsModule, Validators} from '@angular/forms';
 import {ButtonComponent} from '../../../../shared/ui/button/button.component';
 import {PublicApiService} from '../../../../core/services/public-api.service';
+import {LanguageService} from '../../../../core/services/language.service';
+import {TranslationService} from '../../../../core/services/translation.service';
+import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
+import {switchMap, catchError, of} from 'rxjs';
 
 @Component({
     selector: 'app-contact-page',
@@ -22,8 +28,13 @@ import {PublicApiService} from '../../../../core/services/public-api.service';
 
     <div class="container-main w-full flex flex-col items-center mb-10 lg:mb-16">
         <h1 class="font-bdo font-bold text-[40px] md:text-[50px] lg:text-[60px] leading-[1.2] lg:leading-[76px] text-center text-[#0A1642]">
-            Bizimlə əlaqə
+            {{ heroTitle() || t().contactUs }}
         </h1>
+        @if (heroBody()) {
+          <p class="font-bdo font-normal text-[18px] leading-[28px] text-[#80899D] text-center max-w-[700px] mt-4">
+            {{ heroBody() }}
+          </p>
+        }
     </div>
 
     <div
@@ -36,27 +47,49 @@ import {PublicApiService} from '../../../../core/services/public-api.service';
                 <div class="mx-auto flex h-full w-full max-w-[500px] flex-col justify-between">
                     <div class="flex flex-col gap-4">
                         <h2 class="font-bdo font-bold text-[40px] lg:text-[55px] leading-[1.1] lg:leading-[60px] text-white">
-                            Gəlin danışaq!
+                            {{ talkBoxTitle() || 'Gəlin danışaq!' }}
                         </h2>
 
                         <p class="font-bdo font-normal text-[18px] leading-[1.4] text-white">
-                            Qısa məlumat buraxın, komandamız ən qısa zamanda sizinlə əlaqə saxlayacaq.
+                            {{ talkBoxBody() || 'Qısa məlumat buraxın, komandamız ən qısa zamanda sizinlə əlaqə saxlayacaq.' }}
                         </p>
                     </div>
 
                     <div class="flex flex-col gap-[16px]">
-                        <a href="mailto:office@qafqaz.net" class="self-start font-bdo text-[24px] font-normal leading-[100%] text-white transition-colors hover:text-[#00F090] lg:text-[30px]">
-                            office&#64;qafqaz.net
-                        </a>
+                        @if (emailItems().length > 0) {
+                          @for (emailItem of emailItems(); track emailItem.title) {
+                            <a [href]="'mailto:' + emailItem.title" class="self-start font-bdo text-[24px] font-normal leading-[100%] text-white transition-colors hover:text-[#00F090] lg:text-[30px]">
+                                {{ emailItem.title }}
+                            </a>
+                          }
+                        } @else {
+                          <a href="mailto:office@qafqaz.net" class="self-start font-bdo text-[24px] font-normal leading-[100%] text-white transition-colors hover:text-[#00F090] lg:text-[30px]">
+                              office&#64;qafqaz.net
+                          </a>
+                        }
 
                         <div class="flex flex-col gap-[8px]">
-                            <span class="font-bdo text-[16px] text-white lg:text-[18px]">
-                                “ÇİNAR PARK BİZNES MƏRKƏZİ” 4 cü mərtəbə
-                            </span>
+                            @if (locationItems().length > 0) {
+                              @for (loc of locationItems(); track loc.title) {
+                                <span class="font-bdo text-[16px] text-white lg:text-[18px]">
+                                    {{ loc.title }}
+                                </span>
+                              }
+                            } @else {
+                              <span class="font-bdo text-[16px] text-white lg:text-[18px]">
+                                  “ÇİNAR PARK BİZNES MƏRKƏZİ” 4 cü mərtəbə
+                              </span>
+                            }
 
-                            <span class="font-bdo text-[16px] text-white lg:text-[18px]">
-                                +994123100707, +994102346464
-                            </span>
+                            @if (phoneItems().length > 0) {
+                              <span class="font-bdo text-[16px] text-white lg:text-[18px]">
+                                  {{ getPhoneTitlesJoined() }}
+                              </span>
+                            } @else {
+                              <span class="font-bdo text-[16px] text-white lg:text-[18px]">
+                                  +994123100707, +994102346464
+                              </span>
+                            }
                         </div>
                     </div>
                 </div>
@@ -67,6 +100,12 @@ import {PublicApiService} from '../../../../core/services/public-api.service';
         <!-- Right Column -->
         <div class="flex h-full w-full items-center bg-white p-8 md:p-12 lg:py-[64px]">
             <form [formGroup]="contactForm" (ngSubmit)="onSubmit()" class="mx-auto flex w-full max-w-[596px] flex-col gap-[24px]">
+
+                @if (formLabelsTitle()) {
+                  <h3 class="font-bdo font-bold text-[24px] md:text-[28px] text-[#0A1642] mb-2">
+                    {{ formLabelsTitle() }}
+                  </h3>
+                }
 
                 <!-- Success Alert -->
                 @if (successMessage()) {
@@ -89,7 +128,7 @@ import {PublicApiService} from '../../../../core/services/public-api.service';
                 }
 
                 <div class="flex flex-col gap-1">
-                  <input type="text" formControlName="fullName" placeholder="Ad və soyadınızı daxil edin" class="w-full h-[48px] rounded-[10px] bg-[#F7F9FC] border border-transparent px-[16px] font-bdo font-normal text-[16px] leading-[48px] text-[#0A1642] placeholder:text-[#80899D] focus:outline-none focus:border-[#4343FF] focus:ring-1 focus:ring-[#4343FF] transition-all" [class.border-red-500]="contactForm.get('fullName')?.invalid && contactForm.get('fullName')?.touched">
+                  <input type="text" formControlName="fullName" [placeholder]="t().careers.applyForm.namePlaceholder" class="w-full h-[48px] rounded-[10px] bg-[#F7F9FC] border border-transparent px-[16px] font-bdo font-normal text-[16px] leading-[48px] text-[#0A1642] placeholder:text-[#80899D] focus:outline-none focus:border-[#4343FF] focus:ring-1 focus:ring-[#4343FF] transition-all" [class.border-red-500]="contactForm.get('fullName')?.invalid && contactForm.get('fullName')?.touched">
                   @if (contactForm.get('fullName')?.invalid && contactForm.get('fullName')?.touched) {
                     <span class="text-red-500 font-bdo text-[13px]">Zəhmət olmasa ad və soyadınızı daxil edin</span>
                   }
@@ -97,13 +136,13 @@ import {PublicApiService} from '../../../../core/services/public-api.service';
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-[18px] w-full">
                   <div class="flex flex-col gap-1">
-                    <input type="email" formControlName="email" placeholder="Emailinizi daxil edin" class="w-full h-[48px] rounded-[10px] bg-[#F7F9FC] border border-transparent px-[16px] font-bdo font-normal text-[16px] leading-[48px] text-[#0A1642] placeholder:text-[#80899D] focus:outline-none focus:border-[#4343FF] focus:ring-1 focus:ring-[#4343FF] transition-all" [class.border-red-500]="contactForm.get('email')?.invalid && contactForm.get('email')?.touched">
+                    <input type="email" formControlName="email" [placeholder]="t().careers.applyForm.emailPlaceholder" class="w-full h-[48px] rounded-[10px] bg-[#F7F9FC] border border-transparent px-[16px] font-bdo font-normal text-[16px] leading-[48px] text-[#0A1642] placeholder:text-[#80899D] focus:outline-none focus:border-[#4343FF] focus:ring-1 focus:ring-[#4343FF] transition-all" [class.border-red-500]="contactForm.get('email')?.invalid && contactForm.get('email')?.touched">
                     @if (contactForm.get('email')?.invalid && contactForm.get('email')?.touched) {
                       <span class="text-red-500 font-bdo text-[13px]">Düzgün email ünvanı daxil edin</span>
                     }
                   </div>
                   <div class="flex flex-col gap-1">
-                    <input type="tel" formControlName="phone" placeholder="Telefon nömrəniz" class="w-full h-[48px] rounded-[10px] bg-[#F7F9FC] border border-transparent px-[16px] font-bdo font-normal text-[16px] leading-[48px] text-[#0A1642] placeholder:text-[#80899D] focus:outline-none focus:border-[#4343FF] focus:ring-1 focus:ring-[#4343FF] transition-all" [class.border-red-500]="contactForm.get('phone')?.invalid && contactForm.get('phone')?.touched">
+                    <input type="tel" formControlName="phone" [placeholder]="t().careers.applyForm.phonePlaceholder" class="w-full h-[48px] rounded-[10px] bg-[#F7F9FC] border border-transparent px-[16px] font-bdo font-normal text-[16px] leading-[48px] text-[#0A1642] placeholder:text-[#80899D] focus:outline-none focus:border-[#4343FF] focus:ring-1 focus:ring-[#4343FF] transition-all" [class.border-red-500]="contactForm.get('phone')?.invalid && contactForm.get('phone')?.touched">
                     @if (contactForm.get('phone')?.invalid && contactForm.get('phone')?.touched) {
                       <span class="text-red-500 font-bdo text-[13px]">Telefon nömrəsi tələb olunur</span>
                     }
@@ -113,7 +152,7 @@ import {PublicApiService} from '../../../../core/services/public-api.service';
                 <div class="flex flex-col gap-1">
                   <div class="relative w-full" (click)="$event.stopPropagation()">
                     <div tabindex="0" (click)="toggleDropdown($event)" (keydown)="onDropdownKeydown($event)" class="w-full h-[48px] rounded-[10px] bg-[#F7F9FC] border border-transparent px-[16px] flex items-center justify-between font-bdo font-normal text-[16px] focus:outline-none focus:border-[#4343FF] focus:ring-1 focus:ring-[#4343FF] transition-all cursor-pointer" [class.text-[#0A1642]]="contactForm.get('service')?.value" [class.text-[#80899D]]="!contactForm.get('service')?.value" [class.border-red-500]="contactForm.get('service')?.invalid && contactForm.get('service')?.touched">
-                        <span>{{ getSelectedServiceLabel() || 'Xidmət seçin' }}</span>
+                        <span>{{ getSelectedServiceLabel() || t().selectService }}</span>
                         <img src="assets/icons/dropdownIcon.svg" alt="Dropdown" class="w-3 h-3 transition-transform" [class.rotate-180]="isDropdownOpen()">
                     </div>
 
@@ -129,11 +168,11 @@ import {PublicApiService} from '../../../../core/services/public-api.service';
                 </div>
 
                 <div class="flex flex-col gap-1">
-                  <input type="text" formControlName="subject" placeholder="Mövzu (üfunət, əməkdaşlıq və s.)" class="w-full h-[48px] rounded-[10px] bg-[#F7F9FC] border border-transparent px-[16px] font-bdo font-normal text-[16px] leading-[48px] text-[#0A1642] placeholder:text-[#80899D] focus:outline-none focus:border-[#4343FF] focus:ring-1 focus:ring-[#4343FF] transition-all">
+                  <input type="text" formControlName="subject" [placeholder]="t().subject" class="w-full h-[48px] rounded-[10px] bg-[#F7F9FC] border border-transparent px-[16px] font-bdo font-normal text-[16px] leading-[48px] text-[#0A1642] placeholder:text-[#80899D] focus:outline-none focus:border-[#4343FF] focus:ring-1 focus:ring-[#4343FF] transition-all">
                 </div>
 
                 <div class="flex flex-col gap-1">
-                  <textarea formControlName="message" placeholder="Şirkətiniz haqqında qısa məlumat və ya mesajınız" class="w-full h-[102px] rounded-[10px] bg-[#F7F9FC] border border-transparent px-[16px] pt-[13px] pb-[13px] font-bdo font-normal text-[16px] leading-[140%] text-[#0A1642] placeholder:text-[#80899D] focus:outline-none focus:border-[#4343FF] focus:ring-1 focus:ring-[#4343FF] transition-all resize-none" [class.border-red-500]="contactForm.get('message')?.invalid && contactForm.get('message')?.touched"></textarea>
+                  <textarea formControlName="message" [placeholder]="t().companyInfo" class="w-full h-[102px] rounded-[10px] bg-[#F7F9FC] border border-transparent px-[16px] pt-[13px] pb-[13px] font-bdo font-normal text-[16px] leading-[140%] text-[#0A1642] placeholder:text-[#80899D] focus:outline-none focus:border-[#4343FF] focus:ring-1 focus:ring-[#4343FF] transition-all resize-none" [class.border-red-500]="contactForm.get('message')?.invalid && contactForm.get('message')?.touched"></textarea>
                   @if (contactForm.get('message')?.invalid && contactForm.get('message')?.touched) {
                     <span class="text-red-500 font-bdo text-[13px]">Zəhmət olmasa mesajınızı daxil edin</span>
                   }
@@ -142,9 +181,9 @@ import {PublicApiService} from '../../../../core/services/public-api.service';
                 <div class="mt-2 w-full" [class.opacity-50]="contactForm.invalid || isSubmitting()" [class.cursor-not-allowed]="contactForm.invalid || isSubmitting()">
                     <app-button type="submit" variant="gradient" size="nav" [fullWidth]="true" [disabled]="contactForm.invalid || isSubmitting()">
                         @if (isSubmitting()) {
-                          Göndərilir...
+                          {{ t().common.loading }}
                         } @else {
-                          Göndər
+                          {{ t().common.send }}
                         }
                     </app-button>
                 </div>
@@ -159,6 +198,63 @@ import {PublicApiService} from '../../../../core/services/public-api.service';
 export class ContactPageComponent {
     private readonly fb = inject(FormBuilder);
     private readonly apiService = inject(PublicApiService);
+    private readonly languageService = inject(LanguageService);
+    private readonly translationService = inject(TranslationService);
+    private readonly destroyRef = inject(DestroyRef);
+
+    readonly t = this.translationService.translations;
+
+    readonly heroTitle = signal<string | undefined>(undefined);
+    readonly heroBody = signal<string | undefined>(undefined);
+    readonly formLabelsTitle = signal<string | undefined>(undefined);
+    readonly talkBoxTitle = signal<string | undefined>(undefined);
+    readonly talkBoxBody = signal<string | undefined>(undefined);
+    readonly talkBoxItems = signal<any[]>([]);
+
+    readonly phoneItems = computed(() => {
+      const items = this.talkBoxItems();
+      return items.filter(i => i.icon === 'phone' || i.description?.toLowerCase().includes('telefon'));
+    });
+
+    readonly emailItems = computed(() => {
+      const items = this.talkBoxItems();
+      return items.filter(i => i.icon === 'email' || i.title?.includes('@'));
+    });
+
+    readonly locationItems = computed(() => {
+      const items = this.talkBoxItems();
+      return items.filter(i => i.icon === 'location' || i.description?.toLowerCase().includes('ünvan'));
+    });
+
+    constructor() {
+      this.languageService.locale$.pipe(
+        switchMap(locale => this.apiService.getPageContents('contact', locale).pipe(catchError(() => of(null)))),
+        takeUntilDestroyed(this.destroyRef)
+      ).subscribe(res => {
+        if (res?.sections) {
+          const secs = res.sections;
+          if (secs.hero) {
+            if (secs.hero.title) this.heroTitle.set(secs.hero.title);
+            if (secs.hero.body) this.heroBody.set(secs.hero.body);
+          }
+          if (secs.form_labels?.title) {
+            this.formLabelsTitle.set(secs.form_labels.title);
+          }
+          if (secs.talk_box) {
+            if (secs.talk_box.title) this.talkBoxTitle.set(secs.talk_box.title);
+            if (secs.talk_box.body) this.talkBoxBody.set(secs.talk_box.body);
+            if (Array.isArray(secs.talk_box.items)) {
+              const sorted = [...secs.talk_box.items].sort((a: any, b: any) => (a.order ?? 0) - (b.order ?? 0));
+              this.talkBoxItems.set(sorted);
+            }
+          }
+        }
+      });
+    }
+
+    getPhoneTitlesJoined(): string {
+      return this.phoneItems().map(p => p.title).join(', ');
+    }
 
     readonly isDropdownOpen = signal(false);
     readonly serviceOptions = [

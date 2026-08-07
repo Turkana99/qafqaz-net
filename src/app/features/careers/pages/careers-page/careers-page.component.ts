@@ -4,18 +4,22 @@ import {RouterLink} from '@angular/router';
 import {RevealDirective} from '../../../../shared/ui/reveal/reveal.directive';
 import {PublicApiService} from '../../../../core/services/public-api.service';
 import {LanguageService} from '../../../../core/services/language.service';
+import {TranslationService} from '../../../../core/services/translation.service';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
-import {switchMap, catchError, of} from 'rxjs';
+import {switchMap, catchError, of, forkJoin} from 'rxjs';
 
 interface Vacancy {
     readonly slug: string;
     readonly title: string;
     readonly type: string;
+    readonly rawEmpType?: any;
     readonly location: string;
     readonly deadline: string;
+    readonly rawDeadline?: string;
+    readonly isExpired?: boolean;
 }
 
-type TabType = 'Hamısı' | 'Tam ştat' | 'Yarım ştat';
+type TabKey = 'all' | 'fullTime' | 'partTime';
 
 @Component({
     selector: 'app-careers-page',
@@ -32,13 +36,13 @@ type TabType = 'Hamısı' | 'Tam ştat' | 'Yarım ştat';
           appReveal revealDirection="up" [revealDelay]="0"
           class="font-bdo font-bold text-[36px] md:text-[48px] lg:text-[60px] leading-[44px] md:leading-[56px] lg:leading-[40px] tracking-normal text-center text-[#0A1642] m-0 mb-6 md:mb-10"
         >
-          Karyera
+          {{ heroTitle() || t().nav.careers }}
         </h1>
         <p 
           appReveal revealDirection="up" [revealDelay]="100"
           class="font-bdo font-normal text-[16px] md:text-[22px] lg:text-[20px] leading-[26px] md:leading-[32px] lg:leading-[38px] tracking-normal text-center text-[#0A1642] max-w-[900px] m-0"
         >
-          Bizim komandaya qoşulmaq və sürətlə inkişaf edən İT sektorunda karyeranızı qurmaq fürsəti qazanın. Uğurun bir hissəsi olmaq üçün hazırkı vakansiyalarımızla tanış olun.
+          {{ heroBody() || 'Bizim komandaya qoşulmaq və sürətlə inkişaf edən İT sektorunda karyeranızı qurmaq fürsəti qazanın. Uğurun bir hissəsi olmaq üçün hazırkı vakansiyalarımızla tanış olun.' }}
         </p>
       </div>
     </div>
@@ -53,24 +57,24 @@ type TabType = 'Hamısı' | 'Tam ştat' | 'Yarım ştat';
             appReveal revealDirection="left" [revealDelay]="0"
             class="font-bdo font-bold text-[32px] md:text-[48px] lg:text-[60px] leading-[44px] md:leading-[56px] lg:leading-[70px] tracking-normal text-[#0A1642] m-0 text-center lg:text-left"
           >
-            Açıq vakansiyalar
+            {{ openVacanciesTitle() || t().openVacancies }}
           </h2>
           
           <div 
             appReveal revealDirection="right" [revealDelay]="100"
             class="bg-[#F7F9FC] rounded-[12px] p-[6px] flex items-center justify-center lg:justify-start overflow-x-auto mx-auto lg:mx-0 max-w-full"
           >
-            @for (tab of tabs; track tab) {
+            @for (tabKey of tabKeys; track tabKey) {
               <button 
-                (click)="selectTab(tab)"
-                [class.bg-[#FFFFFF]]="selectedTab() === tab"
-                [class.text-[#0A1642]]="selectedTab() === tab"
-                [class.shadow-sm]="selectedTab() === tab"
-                [class.rounded-[8px]]="selectedTab() === tab"
-                [class.text-[#A0A9BD]]="selectedTab() !== tab"
+                (click)="selectTab(tabKey)"
+                [class.bg-[#FFFFFF]]="selectedTab() === tabKey"
+                [class.text-[#0A1642]]="selectedTab() === tabKey"
+                [class.shadow-sm]="selectedTab() === tabKey"
+                [class.rounded-[8px]]="selectedTab() === tabKey"
+                [class.text-[#A0A9BD]]="selectedTab() !== tabKey"
                 class="font-bdo font-normal text-[14px] md:text-[16px] leading-[28px] px-6 py-2 transition-all duration-300 whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0000FE]"
               >
-                {{ tab }}
+                {{ t().careers.filterTabs[tabKey] }}
               </button>
             }
           </div>
@@ -78,10 +82,10 @@ type TabType = 'Hamısı' | 'Tam ştat' | 'Yarım ştat';
 
         <!-- Desktop Headings -->
         <div class="hidden lg:grid grid-cols-4 gap-4 px-6 md:px-8 mb-6">
-          <span class="font-bdo font-normal text-[16px] leading-[20px] text-[#80899D]">Vəzifə</span>
-          <span class="font-bdo font-normal text-[16px] leading-[20px] text-[#80899D]">Vakansiya növü</span>
-          <span class="font-bdo font-normal text-[16px] leading-[20px] text-[#80899D]">Yer</span>
-          <span class="font-bdo font-normal text-[16px] leading-[20px] text-[#80899D]">Son müraciət tarixi</span>
+          <span class="font-bdo font-normal text-[16px] leading-[20px] text-[#80899D]">{{ t().careers.table.position }}</span>
+          <span class="font-bdo font-normal text-[16px] leading-[20px] text-[#80899D]">{{ t().careers.table.type }}</span>
+          <span class="font-bdo font-normal text-[16px] leading-[20px] text-[#80899D]">{{ t().careers.table.location }}</span>
+          <span class="font-bdo font-normal text-[16px] leading-[20px] text-[#80899D]">{{ t().careers.table.deadline }}</span>
         </div>
 
         <!-- Vacancy Cards -->
@@ -99,16 +103,16 @@ type TabType = 'Hamısı' | 'Tam ştat' | 'Yarım ştat';
               
               <!-- 2. Vakansiya növü -->
               <div class="flex items-center gap-2">
-                <span class="lg:hidden font-bdo font-normal text-[14px] text-[#80899D]">Vakansiya növü:</span>
+                <span class="lg:hidden font-bdo font-normal text-[14px] text-[#80899D]">{{ t().careers.table.type }}:</span>
                 <div class="flex items-center gap-2">
                   <img src="assets/icons/clockIcon.svg" alt="Type" class="w-5 h-5 object-contain">
-                  <span class="font-bdo font-normal text-[16px] leading-[20px] text-[#80899D]">{{ vacancy.type }}</span>
+                  <span class="font-bdo font-normal text-[16px] leading-[20px] text-[#80899D]">{{ formatEmploymentType(vacancy.rawEmpType != null ? vacancy.rawEmpType : vacancy.type) }}</span>
                 </div>
               </div>
 
               <!-- 3. Yer -->
               <div class="flex items-center gap-2">
-                <span class="lg:hidden font-bdo font-normal text-[14px] text-[#80899D]">Yer:</span>
+                <span class="lg:hidden font-bdo font-normal text-[14px] text-[#80899D]">{{ t().careers.table.location }}:</span>
                 <div class="flex items-center gap-2">
                   <img src="assets/icons/locationIcon.svg" alt="Location" class="w-5 h-5 object-contain">
                   <span class="font-bdo font-normal text-[16px] leading-[20px] text-[#80899D]">{{ vacancy.location }}</span>
@@ -117,8 +121,8 @@ type TabType = 'Hamısı' | 'Tam ştat' | 'Yarım ştat';
 
               <!-- 4. Son müraciət tarixi -->
               <div class="flex items-center gap-2">
-                <span class="lg:hidden font-bdo font-normal text-[14px] text-[#80899D]">Son müraciət tarixi:</span>
-                <span class="font-bdo font-normal text-[16px] leading-[20px] text-[#80899D]">{{ vacancy.deadline }}</span>
+                <span class="lg:hidden font-bdo font-normal text-[14px] text-[#80899D]">{{ t().careers.table.deadline }}:</span>
+                <span class="font-bdo font-normal text-[16px] leading-[20px] text-[#80899D]">{{ formatDeadline(vacancy.rawDeadline || vacancy.deadline) }}</span>
               </div>
             </a>
           }
@@ -135,7 +139,7 @@ type TabType = 'Hamısı' | 'Tam ştat' | 'Yarım ştat';
                 <button
                   type="button"
                   (click)="prevPage()"
-                  aria-label="Previous page"
+                  [attr.aria-label]="t().shared.pagination.prev"
                   class="w-full h-full rounded-[12px] bg-[#F7F9FC] flex items-center justify-center transition-colors duration-300 hover:bg-[#EBF0F7] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#0000FE]"
                 >
                   <span
@@ -159,7 +163,7 @@ type TabType = 'Hamısı' | 'Tam ştat' | 'Yarım ştat';
                   type="button"
                   (click)="nextPage()"
                   class="w-full h-full bg-[#F7F9FC] hover:bg-[#E2E8F0] text-[#0A1642] rounded-[12px] flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0A1642]"
-                  aria-label="Next page"
+                  [attr.aria-label]="t().shared.pagination.next"
                 >
                   <span
                     aria-hidden="true"
@@ -179,11 +183,14 @@ type TabType = 'Hamısı' | 'Tam ştat' | 'Yarım ştat';
 export class CareersPageComponent {
     private readonly apiService = inject(PublicApiService);
     private readonly languageService = inject(LanguageService);
+    private readonly translationService = inject(TranslationService);
     private readonly destroyRef = inject(DestroyRef);
 
-    readonly tabs : readonly TabType[] = ['Hamısı', 'Tam ştat', 'Yarım ştat'];
+    readonly t = this.translationService.translations;
 
-    readonly defaultVacancies : readonly Vacancy[] = [
+    readonly tabKeys: readonly TabKey[] = ['all', 'fullTime', 'partTime'];
+
+    readonly defaultVacancies: readonly Vacancy[] = [
         {
             slug: 'sebeke-administratoru',
             title: 'Şəbəkə administratoru',
@@ -211,62 +218,129 @@ export class CareersPageComponent {
         }
     ];
 
-    readonly allVacancies = signal<Vacancy[]>([...this.defaultVacancies]);
+    readonly heroTitle = signal<string | undefined>(undefined);
+    readonly heroBody = signal<string | undefined>(undefined);
+    readonly openVacanciesTitle = signal<string | undefined>(undefined);
 
-    selectedTab = signal<TabType>('Hamısı');
+    readonly allVacancies = signal<Vacancy[]>([]);
+    readonly totalMetaPages = signal<number>(1);
+
+    selectedTab = signal<TabKey>('all');
     currentPage = signal(1);
     itemsPerPage = 10;
 
-    filteredVacancies = computed(() => {
-        const tab = this.selectedTab();
-        const list = this.allVacancies();
-        if (tab === 'Hamısı') {
-            return list;
-        }
-        return list.filter(v => v.type === tab);
-    });
-
-    totalPages = computed(() => Math.ceil(this.filteredVacancies().length / this.itemsPerPage) || 1);
-
-    currentVacancies = computed(() => {
-        const startIndex = (this.currentPage() - 1) * this.itemsPerPage;
-        return this.filteredVacancies().slice(startIndex, startIndex + this.itemsPerPage);
-    });
+    totalPages = computed(() => this.totalMetaPages());
+    currentVacancies = computed(() => this.allVacancies());
 
     constructor() {
       this.languageService.locale$.pipe(
-        switchMap(() => this.apiService.getVacancies(1, 100).pipe(
-          catchError(() => of(null))
-        )),
+        switchMap((locale) => forkJoin({
+          pageContent: this.apiService.getPageContents('careers', locale).pipe(catchError(() => of(null)))
+        })),
         takeUntilDestroyed(this.destroyRef)
+      ).subscribe(({ pageContent }) => {
+        if (pageContent?.sections) {
+          const secs = pageContent.sections;
+          if (secs.hero) {
+            if (secs.hero.title) this.heroTitle.set(secs.hero.title);
+            if (secs.hero.body) this.heroBody.set(secs.hero.body);
+          }
+          if (secs.open_vacancies?.title) {
+            this.openVacanciesTitle.set(secs.open_vacancies.title);
+          }
+        }
+        this.loadVacancies();
+      });
+    }
+
+    loadVacancies(locale?: string): void {
+      const currentLocale = locale || this.languageService.currentLocale();
+      const tabKey = this.selectedTab();
+      let empTypeParam: number | string | undefined = undefined;
+      if (tabKey === 'fullTime') {
+        empTypeParam = 0;
+      } else if (tabKey === 'partTime') {
+        empTypeParam = 1;
+      }
+
+      this.apiService.getVacancies(this.currentPage(), this.itemsPerPage, empTypeParam, currentLocale).pipe(
+        catchError(() => of(null))
       ).subscribe((res: any) => {
-        if (res && res.data && res.data.length > 0) {
-          const mapped = res.data.map((item: any) => ({
-            slug: item.slug || String(item.id),
-            title: item.title || '',
-            type: item.type || item.workType || 'Tam ştat',
-            location: item.location || 'Azərbaycan, Bakı',
-            deadline: item.deadline || item.endDate || 'Açıq'
-          }));
+        if (res && res.data) {
+          const mapped: Vacancy[] = res.data.map((item: any) => {
+            return {
+              slug: item.slug || String(item.id),
+              title: item.title || '',
+              type: String(item.employmentType),
+              rawEmpType: item.employmentType,
+              location: item.location || 'Azərbaycan, Bakı',
+              deadline: item.deadline || item.endDate || '',
+              rawDeadline: item.deadline || item.endDate,
+              isExpired: item.isExpired || false
+            };
+          });
           this.allVacancies.set(mapped);
+          if (res.meta) {
+            this.totalMetaPages.set(res.meta.total_pages || Math.ceil((res.meta.total || mapped.length) / this.itemsPerPage) || 1);
+          }
         }
       });
     }
 
-    selectTab(tab : TabType): void {
+    formatEmploymentType(empType: any): string {
+      if (empType === 0 || empType === '0') {
+        return this.t().careers.fullTime;
+      }
+      if (empType === 1 || empType === '1') {
+        return this.t().careers.partTime;
+      }
+      if (typeof empType === 'string') {
+        const lower = empType.toLowerCase();
+        if (lower.includes('tam') || lower.includes('full') || lower.includes('постоянн')) {
+          return this.t().careers.fullTime;
+        }
+        if (lower.includes('yarım') || lower.includes('part') || lower.includes('неполн')) {
+          return this.t().careers.partTime;
+        }
+      }
+      return String(empType || '');
+    }
+
+    formatDeadline(dateStr?: string | null): string {
+      if (!dateStr) return '';
+      const date = new Date(dateStr);
+      if (isNaN(date.getTime())) return String(dateStr);
+
+      const locale = this.languageService.currentLocale();
+      if (locale === 'az') {
+        const months = ['yanvar', 'fevral', 'mart', 'aprel', 'may', 'iyun', 'iyul', 'avqust', 'sentyabr', 'oktyabr', 'noyabr', 'dekabr'];
+        return `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`;
+      } else if (locale === 'ru') {
+        const months = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
+        return `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`;
+      } else {
+        const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+        return `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`;
+      }
+    }
+
+    selectTab(tab: TabKey): void {
         this.selectedTab.set(tab);
         this.currentPage.set(1);
+        this.loadVacancies();
     }
 
     nextPage(): void {
         if (this.currentPage() < this.totalPages()) {
             this.currentPage.update(p => p + 1);
+            this.loadVacancies();
         }
     }
 
     prevPage(): void {
         if (this.currentPage() > 1) {
             this.currentPage.update(p => p - 1);
+            this.loadVacancies();
         }
     }
 }

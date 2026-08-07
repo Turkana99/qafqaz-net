@@ -1,8 +1,9 @@
-import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { SERVICES } from '../../../../core/constants/mock-data';
 import { RevealDirective } from '../../../../shared/ui/reveal/reveal.directive';
 import { ServiceCardComponent } from '../../../../shared/ui/service-card/service-card.component';
+import { TranslationService } from '../../../../core/services/translation.service';
 
 @Component({
   selector: 'app-services-section',
@@ -18,23 +19,28 @@ import { ServiceCardComponent } from '../../../../shared/ui/service-card/service
           <div appReveal revealDirection="left" [revealDelay]="0" class="inline-flex items-center gap-2 bg-[#F7F9FC] rounded-[7px] px-3 sm:px-4 py-1.5 min-h-[32px] mb-4 sm:mb-6 max-w-full mx-auto md:mx-0">
             <img src="assets/icons/serviceIcon.svg" alt="" class="w-4 h-4 sm:w-5 sm:h-5 object-contain shrink-0">
             <span class="text-[14px] sm:text-[16px] text-[#0A1642] font-normal font-bdo m-0 tracking-normal align-middle mt-[1px]">
-              İnnovativ həllər, ölçülə bilən nəticələr
+              {{ subtitle() || t().innovativeSolutions }}
             </span>
           </div>
 
           <!-- Top Row: Title and Desktop Button -->
-          <div class="flex flex-col md:flex-row md:items-start justify-between gap-6 sm:gap-8 mb-10 sm:mb-16 w-full">
+          <div class="flex flex-col md:flex-row md:items-start justify-between gap-6 sm:gap-8 mb-6 sm:mb-10 w-full">
             
-            <h2 appReveal revealDirection="left" [revealDelay]="100" class="text-[26px] sm:text-[40px] lg:text-[60px] leading-[1.2] lg:leading-[70px] font-bold font-bdo text-[#0A1642] tracking-normal max-w-[800px] text-center md:text-left">
-              Aşağıdakı xidmətlər üzrə<br class="hidden md:block"> ixtisaslaşmışıq
-            </h2>
+            <div class="flex flex-col items-center md:items-start text-center md:text-left">
+              <h2 appReveal revealDirection="left" [revealDelay]="100" class="text-[26px] sm:text-[40px] lg:text-[60px] leading-[1.2] lg:leading-[70px] font-bold font-bdo text-[#0A1642] tracking-normal max-w-[800px]">
+                {{ title() || t().specializedServices }}
+              </h2>
+              @if (body(); as b) {
+                <div appReveal revealDirection="left" [revealDelay]="150" class="font-bdo font-normal text-[16px] sm:text-[18px] leading-[26px] sm:leading-[30px] text-[#80899D] m-0 max-w-[800px] mt-3" [innerHTML]="b"></div>
+              }
+            </div>
             
             <div appReveal revealDirection="right" [revealDelay]="200" class="hidden md:block">
               <a
                 routerLink="/services"
                 class="group inline-flex h-[48px] shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-[12px] bg-[#F7F9FC] px-6 font-bdo text-[16px] font-medium leading-none text-[#4343FF] transition-colors duration-300 hover:text-[#0000AD] focus-visible:text-[#0000AD] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0000AD] focus-visible:ring-offset-2"
               >
-                <span class="font-bdo font-bold transition-colors duration-300 group-hover:text-[#0000AD] group-focus-visible:text-[#0000AD]">Daha çox göstər</span>
+                <span class="font-bdo font-bold transition-colors duration-300 group-hover:text-[#0000AD] group-focus-visible:text-[#0000AD]">{{ t().common.showMore }}</span>
 
                 <span
                   aria-hidden="true"
@@ -60,7 +66,7 @@ import { ServiceCardComponent } from '../../../../shared/ui/service-card/service
             routerLink="/services"
             class="group inline-flex h-[48px] w-full items-center justify-center gap-1.5 whitespace-nowrap rounded-[12px] bg-[#F7F9FC] px-6 font-bdo text-[16px] font-medium leading-none text-[#4343FF] transition-colors duration-300 hover:text-[#0000AD] focus-visible:text-[#0000AD] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0000AD] focus-visible:ring-offset-2"
           >
-            <span class="font-bdo font-bold transition-colors duration-300 group-hover:text-[#0000AD] group-focus-visible:text-[#0000AD]">Daha çox göstər</span>
+            <span class="font-bdo font-bold transition-colors duration-300 group-hover:text-[#0000AD] group-focus-visible:text-[#0000AD]">{{ t().common.showMore }}</span>
 
             <span
               aria-hidden="true"
@@ -75,9 +81,19 @@ import { ServiceCardComponent } from '../../../../shared/ui/service-card/service
   `
 })
 export class ServicesSectionComponent {
+  private readonly translationService = inject(TranslationService);
+  readonly t = this.translationService.translations;
+
+  title = input<string | undefined>(undefined);
+  subtitle = input<string | undefined>(undefined);
+  body = input<string | undefined>(undefined);
   items = input<any[] | undefined>(undefined);
+
   readonly services = computed(() => {
-    const list = this.items();
-    return (list && list.length > 0) ? list : SERVICES;
+    const custom = this.items();
+    if (custom && custom.length > 0) {
+      return custom;
+    }
+    return SERVICES;
   });
 }

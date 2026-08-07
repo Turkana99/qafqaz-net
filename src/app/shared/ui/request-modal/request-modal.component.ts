@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ButtonComponent } from '../button/button.component';
 import { RequestModalService } from '../../services/request-modal.service';
+import { TranslationService } from '../../../core/services/translation.service';
 
 @Component({
   selector: 'app-request-modal',
@@ -22,7 +23,7 @@ import { RequestModalService } from '../../services/request-modal.service';
         <!-- Top Row -->
         <div class="flex items-center justify-between mb-8 lg:mb-[48px]">
           <h2 class="font-bdo font-semibold text-[32px] lg:text-[48px] leading-[1.2] lg:leading-[60px] text-[#0A1642]">
-            Sorğunuzu göndərin
+            {{ t().sendRequest }}
           </h2>
           <button 
             (click)="close()"
@@ -40,7 +41,7 @@ import { RequestModalService } from '../../services/request-modal.service';
           <input 
             type="text" 
             formControlName="fullName"
-            placeholder="Ad və soyadınızı daxil edin"
+            [placeholder]="t().careers.applyForm.namePlaceholder"
             class="w-full h-[48px] rounded-[10px] bg-[#F7F9FC] border border-transparent px-[16px] font-bdo font-normal text-[16px] leading-[48px] text-[#0A1642] placeholder:text-[#80899D] focus:outline-none focus:border-[#4343FF] focus:ring-1 focus:ring-[#4343FF] transition-all"
             [class.border-red-500]="contactForm.get('fullName')?.invalid && contactForm.get('fullName')?.touched"
           >
@@ -49,14 +50,14 @@ import { RequestModalService } from '../../services/request-modal.service';
             <input 
               type="email" 
               formControlName="email"
-              placeholder="Emailinizi daxil edin"
+              [placeholder]="t().careers.applyForm.emailPlaceholder"
               class="w-full h-[48px] rounded-[10px] bg-[#F7F9FC] border border-transparent px-[16px] font-bdo font-normal text-[16px] leading-[48px] text-[#0A1642] placeholder:text-[#80899D] focus:outline-none focus:border-[#4343FF] focus:ring-1 focus:ring-[#4343FF] transition-all"
               [class.border-red-500]="contactForm.get('email')?.invalid && contactForm.get('email')?.touched"
             >
             <input 
               type="tel" 
               formControlName="phone"
-              placeholder="Telefon nömrəniz"
+              [placeholder]="t().careers.applyForm.phonePlaceholder"
               class="w-full h-[48px] rounded-[10px] bg-[#F7F9FC] border border-transparent px-[16px] font-bdo font-normal text-[16px] leading-[48px] text-[#0A1642] placeholder:text-[#80899D] focus:outline-none focus:border-[#4343FF] focus:ring-1 focus:ring-[#4343FF] transition-all"
               [class.border-red-500]="contactForm.get('phone')?.invalid && contactForm.get('phone')?.touched"
             >
@@ -72,7 +73,7 @@ import { RequestModalService } from '../../services/request-modal.service';
               [class.text-[#80899D]]="!contactForm.get('service')?.value"
               [class.border-red-500]="contactForm.get('service')?.invalid && contactForm.get('service')?.touched"
             >
-              <span>{{ getSelectedServiceLabel() || 'Xidmət seçin' }}</span>
+              <span>{{ getSelectedServiceLabel() || t().selectService }}</span>
               <img src="assets/icons/dropdownIcon.svg" alt="Dropdown" class="w-3 h-3 transition-transform" [class.rotate-180]="isDropdownOpen()">
             </div>
 
@@ -93,7 +94,7 @@ import { RequestModalService } from '../../services/request-modal.service';
 
           <textarea 
             formControlName="message"
-            placeholder="Şirkətiniz haqqında qısa məlumat"
+            [placeholder]="t().companyInfo"
             class="w-full h-[150px] lg:h-[219px] rounded-[10px] bg-[#F7F9FC] border border-transparent px-[16px] py-[13px] font-bdo font-normal text-[16px] leading-[140%] text-[#0A1642] placeholder:text-[#80899D] focus:outline-none focus:border-[#4343FF] focus:ring-1 focus:ring-[#4343FF] transition-all resize-none"
             [class.border-red-500]="contactForm.get('message')?.invalid && contactForm.get('message')?.touched"
           ></textarea>
@@ -106,7 +107,7 @@ import { RequestModalService } from '../../services/request-modal.service';
               [fullWidth]="true"
               [disabled]="contactForm.invalid"
             >
-              Göndər
+              {{ t().common.send }}
             </app-button>
           </div>
 
@@ -118,6 +119,9 @@ import { RequestModalService } from '../../services/request-modal.service';
 export class RequestModalComponent {
   modalService = inject(RequestModalService);
   private fb = inject(FormBuilder);
+  private translationService = inject(TranslationService);
+
+  readonly t = this.translationService.translations;
 
   isDropdownOpen = signal(false);
   serviceOptions = [

@@ -8,11 +8,12 @@ import {
     signal
 } from '@angular/core';
 import {NavigationEnd, Router, RouterLink, RouterLinkActive} from '@angular/router';
-import {NAV_ITEMS, NavItem} from '../../core/constants/navigation';
+import {NavItem} from '../../core/constants/navigation';
 import {ButtonComponent} from '../../shared/ui/button/button.component';
 import {IconComponent} from '../../shared/ui/icon/icon.component';
 import {RevealDirective} from '../../shared/ui/reveal/reveal.directive';
 import {LanguageService} from '../../core/services/language.service';
+import {TranslationService} from '../../core/services/translation.service';
 
 @Component({
     selector: 'app-header',
@@ -36,7 +37,7 @@ import {LanguageService} from '../../core/services/language.service';
 
           <!-- Desktop Navigation -->
           <nav class="hidden lg:flex items-center gap-6 xl:gap-8">
-            @for (item of navItems; track item.label) {
+            @for (item of navItems(); track item.label) {
               @if (item.children) {
                 <div class="relative">
                   <button 
@@ -117,7 +118,7 @@ import {LanguageService} from '../../core/services/language.service';
               }
             </div>
 
-            <app-button variant="gradient" size="nav" routerLink="/contact" trailingIcon="assets/icons/chat.svg">Konsultasiya</app-button>
+            <app-button variant="gradient" size="nav" routerLink="/contact" trailingIcon="assets/icons/chat.svg">{{ t().nav.contact }}</app-button>
           </div>
 
           <!-- Mobile Menu Button -->
@@ -173,7 +174,7 @@ import {LanguageService} from '../../core/services/language.service';
                </div>
 
                <app-button variant="gradient" size="nav" routerLink="/contact" trailingIcon="assets/icons/chat.svg" [fullWidth]="true" (click)="closeMenu()">
-                 Konsultasiya
+                 {{ t().nav.contact }}
                </app-button>
              </div>
            </nav>
@@ -186,19 +187,37 @@ export class HeaderComponent {
     private readonly router = inject(Router);
     private readonly destroyRef = inject(DestroyRef);
     private readonly languageService = inject(LanguageService);
+    private readonly translationService = inject(TranslationService);
 
-    navItems = NAV_ITEMS;
-    isMenuOpen = signal(false);
+    readonly t = this.translationService.translations;
 
     languages = ['AZ', 'EN', 'RU'] as const;
     selectedLang = this.languageService.currentLanguage;
 
-    openDropdownId = signal < string | null > (null);
+    openDropdownId = signal<string | null>(null);
+    isMenuOpen = signal(false);
 
-    readonly currentUrl = signal < string > (this.router.url);
+    readonly currentUrl = signal<string>(this.router.url);
+
+    readonly navItems = computed<NavItem[]>(() => {
+        const navT = this.t().nav;
+        return [
+            { label: navT.services, route: '/services' },
+            { label: navT.products, route: '/products' },
+            {
+                label: navT.about,
+                children: [
+                    { label: navT.about, route: '/company' },
+                    { label: this.t().financialReports, route: '/financial-reports' }
+                ]
+            },
+            { label: navT.blog, route: '/blogs' },
+            { label: navT.careers, route: '/careers' },
+        ];
+    });
 
     readonly mobileNavItems = computed(() => {
-        return this.navItems.flatMap(item => {
+        return this.navItems().flatMap(item => {
             if (item.children) {
                 return item.children;
             }
@@ -220,11 +239,10 @@ export class HeaderComponent {
         return url === '/' || url === '';
     });
 
-    isChildRouteActive(item : NavItem): boolean {
+    isChildRouteActive(item: NavItem): boolean {
         if (!item.children) 
             return false;
         
-
         const current = this.currentUrl().split('?')[0];
         return item.children.some((child) => current.startsWith(child.route));
     }
@@ -260,14 +278,14 @@ export class HeaderComponent {
     }
 
     @HostListener('document:click', ['$event'])
-    onDocumentClick(event : MouseEvent) {
+    onDocumentClick(event: MouseEvent) {
         const target = event.target as HTMLElement;
-        if (this.openDropdownId() && ! target.closest('.relative')) {
+        if (this.openDropdownId() && !target.closest('.relative')) {
             this.closeDropdown();
         }
     }
 
-    toggleDropdown(event : Event, id : string) {
+    toggleDropdown(event: Event, id: string) {
         event.stopPropagation();
         if (this.openDropdownId() === id) {
             this.openDropdownId.set(null);
@@ -280,7 +298,7 @@ export class HeaderComponent {
         this.openDropdownId.set(null);
     }
 
-    selectLanguage(lang : typeof this.languages[number]) {
+    selectLanguage(lang: typeof this.languages[number]) {
         this.languageService.setLanguage(lang);
         this.closeDropdown();
     }
