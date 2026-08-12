@@ -12,6 +12,7 @@ import {LanguageService} from '../../../../core/services/language.service';
 import {TranslationService} from '../../../../core/services/translation.service';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 import {switchMap, catchError, of} from 'rxjs';
+import {environment} from '../../../../../environments/environment';
 
 interface FinancialReport {
     readonly id: string;
@@ -47,9 +48,10 @@ interface FinancialReport {
 
         @for (report of reports(); track report.id || $index; let i = $index) {
           <a
-            [href]="report.fileUrl"
+            [href]="getFileUrl(report)"
             target="_blank"
             rel="noopener noreferrer"
+            (click)="onReportClick($event, report)"
             appReveal revealDirection="up" [revealDelay]="i * 100"
             class="group w-full max-w-[1200px] mx-auto min-h-[92px] sm:min-h-[110px] rounded-[20px] bg-[#F7F9FC] p-6 md:p-8 flex items-center justify-between gap-4 transition-all duration-300 hover:bg-[#EBF0F7] cursor-pointer"
           >
@@ -163,5 +165,43 @@ export class FinancialReportsPageComponent {
         if (this.hasPrev()) {
             this.loadPage(this.currentPage() - 1);
         }
+    }
+
+    getFileUrl(report: any): string {
+        if (!report) return '#';
+        let url = report.fileUrl || report.file_url || report.file || report.url || report.pdfUrl || report.pdf_url || report.filePath || report.file_path || report.documentUrl || report.document_url || report.attachmentUrl || report.attachment_url || report.path || '';
+        if (typeof url === 'object' && url !== null) {
+            url = url.url || url.fileUrl || url.file_url || url.path || '';
+        }
+        url = String(url || '').trim();
+        if (!url || url === '#' || url === 'undefined' || url === 'null') return '#';
+
+        if (!url.startsWith('http://') && !url.startsWith('https://') && !url.startsWith('blob:')) {
+            const apiBase = environment.financialReports.getFinancialReports.replace(/\/api\/v1\/.*$/, '').replace(/\/api\/.*$/, '');
+            url = url.startsWith('/') ? `${apiBase}${url}` : `${apiBase}/${url}`;
+        }
+        return url;
+    }
+
+    onReportClick(event: MouseEvent, report: any): void {
+        event.preventDefault();
+        event.stopPropagation();
+
+        if (!report || !report.id) {
+            const fallbackUrl = this.getFileUrl(report);
+            if (fallbackUrl && fallbackUrl !== '#') {
+                window.open(fallbackUrl, '_blank', 'noopener,noreferrer');
+            }
+            return;
+        }
+
+        this.apiService.getFinancialReportById(report.id).pipe(
+            catchError(() => of(null))
+        ).subscribe((res: any) => {
+            const fileUrl = this.getFileUrl(res || report);
+            if (fileUrl && fileUrl !== '#') {
+                window.open(fileUrl, '_blank', 'noopener,noreferrer');
+            }
+        });
     }
 }

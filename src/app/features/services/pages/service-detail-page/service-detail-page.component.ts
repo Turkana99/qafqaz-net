@@ -19,7 +19,11 @@ import {ServiceDetail} from '../../../../core/models/api.model';
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    @if (service(); as item) {
+    @if (isLoading()) {
+      <div class="bg-[#F7F9FC] pt-[180px] pb-32 w-full min-h-screen flex items-center justify-center">
+        <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#4343FF]"></div>
+      </div>
+    } @else if (service(); as item) {
       <!-- Hero Section -->
       <section class="w-full bg-[#F7F9FC] pt-[180px] pb-16 lg:pb-32 overflow-hidden">
         <div class="container-main">
@@ -173,11 +177,9 @@ import {ServiceDetail} from '../../../../core/models/api.model';
       font-size: 16px;
       line-height: 28px;
       letter-spacing: 0;
+      margin-bottom: 1.5rem;
+      padding-left: 1.5rem;
       list-style-type: disc;
-      padding-left: 24px;
-      margin-bottom: 1rem;
-      word-break: break-word;
-      overflow-wrap: break-word;
     }
 
     :host ::ng-deep .rich-text-content ol {
@@ -187,34 +189,25 @@ import {ServiceDetail} from '../../../../core/models/api.model';
       font-size: 16px;
       line-height: 28px;
       letter-spacing: 0;
+      margin-bottom: 1.5rem;
+      padding-left: 1.5rem;
       list-style-type: decimal;
-      padding-left: 24px;
-      margin-bottom: 1rem;
-      word-break: break-word;
-      overflow-wrap: break-word;
     }
 
     :host ::ng-deep .rich-text-content li {
       margin-bottom: 0.5rem;
-      word-break: break-word;
-      overflow-wrap: break-word;
-    }
-
-    :host ::ng-deep .rich-text-content li::marker {
-      color: currentColor;
     }
 
     :host ::ng-deep .rich-text-content strong,
     :host ::ng-deep .rich-text-content b {
-      font-weight: 600;
+      font-weight: bold;
       color: #0A1642;
     }
 
     :host ::ng-deep .rich-text-content a {
-      color: #0000FE;
+      color: #4343FF;
       text-decoration: underline;
-      transition: color 0.3s;
-      word-break: break-word;
+      transition: color 0.2s ease;
     }
     
     :host ::ng-deep .rich-text-content a:hover {
@@ -238,6 +231,7 @@ export class ServiceDetailPageComponent {
   private readonly metaService = inject(Meta);
   private readonly destroyRef = inject(DestroyRef);
 
+  readonly isLoading = signal(true);
   readonly service = signal<ServiceDetail | undefined>(undefined);
 
   constructor() {
@@ -245,7 +239,8 @@ export class ServiceDetailPageComponent {
       this.route.paramMap,
       this.languageService.locale$
     ]).pipe(
-      switchMap(([params]) => {
+      switchMap(([params, locale]) => {
+        this.isLoading.set(true);
         const slug = params.get('slug');
         if (!slug) return of(null);
         return this.apiService.getServiceBySlug(slug).pipe(
@@ -254,6 +249,7 @@ export class ServiceDetailPageComponent {
       }),
       takeUntilDestroyed(this.destroyRef)
     ).subscribe((serv: ServiceDetail | null) => {
+      this.isLoading.set(false);
       this.service.set(serv || undefined);
       if (serv) {
         const pageTitle = serv.title || 'QafqazNet Xidmətlər';

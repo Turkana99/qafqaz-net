@@ -135,16 +135,16 @@ import {switchMap, catchError, of, forkJoin} from 'rxjs';
             </h2>
             
             <div appReveal revealDirection="right" [revealDelay]="100" class="flex items-center gap-1 bg-[#F7F9FC] p-[10px] rounded-[12px] overflow-x-auto mx-auto md:mx-0 w-full md:w-auto max-w-full no-scrollbar">
-              @for (tab of displayCategories(); track tab.id) {
+              @for (tab of displayCategories(); track tab.slug) {
                 <button 
                   type="button"
-                  (click)="selectTab(tab.id)"
-                  [attr.aria-selected]="selectedTab() === tab.id"
+                  (click)="selectTab(tab.slug)"
+                  [attr.aria-selected]="selectedTab() === tab.slug"
                   class="min-w-max px-4 py-2 font-bdo font-normal text-[16px] leading-[28px] rounded-[8px] transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0A1642]"
-                  [class.bg-white]="selectedTab() === tab.id"
-                  [class.text-[#0A1642]]="selectedTab() === tab.id"
-                  [class.shadow-sm]="selectedTab() === tab.id"
-                  [class.text-[#A0A9BD]]="selectedTab() !== tab.id"
+                  [class.bg-white]="selectedTab() === tab.slug"
+                  [class.text-[#0A1642]]="selectedTab() === tab.slug"
+                  [class.shadow-sm]="selectedTab() === tab.slug"
+                  [class.text-[#A0A9BD]]="selectedTab() !== tab.slug"
                 >
                   {{ tab.name }}
                 </button>
@@ -225,13 +225,14 @@ export class BlogsPageComponent {
     readonly featuredBlog = signal<any>(null);
     readonly newsBlogs = signal<any[]>([]);
 
-    readonly apiCategories = signal<{ id: string | number; name: string }[]>([]);
+    readonly apiCategories = signal<{ id: string | number; slug: string; name: string }[]>([]);
     readonly displayCategories = computed(() => {
       const cats = this.apiCategories();
-      return [{ id: 'all', name: this.t().blog.filterAll }, ...cats];
+      return [{ id: 'all', slug: 'all', name: this.t().blog.filterAll }, ...cats];
     });
 
-    readonly selectedTab = signal<string | number>('all');
+    readonly selectedTab = signal<string>('all');
+    readonly selectedCategorySlug = signal<string | null>(null);
     readonly currentPage = signal<number>(1);
     readonly itemsPerPage = 6;
     readonly totalPages = signal<number>(1);
@@ -245,13 +246,18 @@ export class BlogsPageComponent {
       this.languageService.locale$.pipe(
         switchMap((locale) => forkJoin({
           featuredRes: this.apiService.getFeaturedBlogs(locale).pipe(catchError(() => of([]))),
-          cats: this.apiService.getBlogCategories().pipe(catchError(() => of([]))),
+          cats: this.apiService.getBlogCategories(locale).pipe(catchError(() => of([]))),
           pageContent: this.apiService.getPageContents('blog', locale).pipe(catchError(() => of(null)))
         })),
         takeUntilDestroyed(this.destroyRef)
       ).subscribe(({ featuredRes, cats, pageContent }) => {
-        if (cats && cats.length > 0) {
-          this.apiCategories.set(cats);
+        if (Array.isArray(cats) && cats.length > 0) {
+          const mappedCats = cats.map((c: any) => ({
+            id: c.id,
+            slug: String(c.slug || ''),
+            name: c.name || c.title || ''
+          }));
+          this.apiCategories.set(mappedCats);
         }
         if (Array.isArray(featuredRes) && featuredRes.length > 0) {
           this.featuredBlog.set(featuredRes[0]);
@@ -284,18 +290,24 @@ export class BlogsPageComponent {
         this.paginatedBlogs.set(list);
         if (res.meta) {
           const meta = res.meta;
-          this.currentPage.set(meta.current_page ?? 1);
-          this.totalPages.set(meta.total_pages ?? 1);
-          this.hasPrev.set(meta.has_prev ?? (meta.current_page > 1));
-          this.hasNext.set(meta.has_next ?? (meta.current_page < meta.total_pages));
+          const currPage = meta.current_page ?? meta.currentPage ?? meta.page ?? this.currentPage();
+          const totPages = meta.total_pages ?? meta.totalPages ?? Math.ceil((meta.total ?? list.length) / this.itemsPerPage) ?? 1;
+          this.currentPage.set(currPage);
+          this.totalPages.set(totPages);
+          this.hasPrev.set(meta.has_prev ?? meta.hasPrev ?? (currPage > 1));
+          this.hasNext.set(meta.has_next ?? meta.hasNext ?? (currPage < totPages));
+        } else {
+          this.totalPages.set(1);
+          this.hasPrev.set(false);
+          this.hasNext.set(false);
         }
       }
     }
 
     loadBlogs(locale?: string) {
-      const catId = this.selectedTab() === 'all' ? undefined : this.selectedTab();
+      const slug = this.selectedCategorySlug();
       const currentLocale = locale || this.languageService.currentLocale();
-      this.apiService.getBlogs(this.currentPage(), this.itemsPerPage, catId, currentLocale).pipe(
+      this.apiService.getBlogs(this.currentPage(), this.itemsPerPage, slug || undefined, currentLocale).pipe(
         catchError(() => of(null))
       ).subscribe((res) => {
         this.handleBlogsResponse(res);
@@ -308,8 +320,15 @@ export class BlogsPageComponent {
       this.loadBlogs();
     }
 
-    selectTab(tab: string | number) {
-      this.selectedTab.set(tab);
+    selectTab(tab: any) {
+      const slug = typeof tab === 'object' && tab !== null ? tab.slug : String(tab);
+      if (!slug || slug === 'all') {
+        this.selectedTab.set('all');
+        this.selectedCategorySlug.set(null);
+      } else {
+        this.selectedTab.set(slug);
+        this.selectedCategorySlug.set(slug);
+      }
       this.currentPage.set(1);
       this.loadBlogs();
     }

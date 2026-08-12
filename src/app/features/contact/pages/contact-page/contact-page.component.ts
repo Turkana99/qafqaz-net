@@ -130,7 +130,7 @@ import {switchMap, catchError, of} from 'rxjs';
                 <div class="flex flex-col gap-1">
                   <input type="text" formControlName="fullName" [placeholder]="t().careers.applyForm.namePlaceholder" class="w-full h-[48px] rounded-[10px] bg-[#F7F9FC] border border-transparent px-[16px] font-bdo font-normal text-[16px] leading-[48px] text-[#0A1642] placeholder:text-[#80899D] focus:outline-none focus:border-[#4343FF] focus:ring-1 focus:ring-[#4343FF] transition-all" [class.border-red-500]="contactForm.get('fullName')?.invalid && contactForm.get('fullName')?.touched">
                   @if (contactForm.get('fullName')?.invalid && contactForm.get('fullName')?.touched) {
-                    <span class="text-red-500 font-bdo text-[13px]">Zəhmət olmasa ad və soyadınızı daxil edin</span>
+                    <span class="text-red-500 font-bdo text-[13px]">{{ t().validation.fullNameRequired }}</span>
                   }
                 </div>
 
@@ -138,15 +138,31 @@ import {switchMap, catchError, of} from 'rxjs';
                   <div class="flex flex-col gap-1">
                     <input type="email" formControlName="email" [placeholder]="t().careers.applyForm.emailPlaceholder" class="w-full h-[48px] rounded-[10px] bg-[#F7F9FC] border border-transparent px-[16px] font-bdo font-normal text-[16px] leading-[48px] text-[#0A1642] placeholder:text-[#80899D] focus:outline-none focus:border-[#4343FF] focus:ring-1 focus:ring-[#4343FF] transition-all" [class.border-red-500]="contactForm.get('email')?.invalid && contactForm.get('email')?.touched">
                     @if (contactForm.get('email')?.invalid && contactForm.get('email')?.touched) {
-                      <span class="text-red-500 font-bdo text-[13px]">Düzgün email ünvanı daxil edin</span>
+                      <span class="text-red-500 font-bdo text-[13px]">
+                        @if (contactForm.get('email')?.errors?.['required']) {
+                          {{ t().validation.emailRequired }}
+                        } @else {
+                          {{ t().validation.emailFormat }}
+                        }
+                      </span>
                     }
                   </div>
                   <div class="flex flex-col gap-1">
                     <input type="tel" formControlName="phone" [placeholder]="t().careers.applyForm.phonePlaceholder" class="w-full h-[48px] rounded-[10px] bg-[#F7F9FC] border border-transparent px-[16px] font-bdo font-normal text-[16px] leading-[48px] text-[#0A1642] placeholder:text-[#80899D] focus:outline-none focus:border-[#4343FF] focus:ring-1 focus:ring-[#4343FF] transition-all" [class.border-red-500]="contactForm.get('phone')?.invalid && contactForm.get('phone')?.touched">
                     @if (contactForm.get('phone')?.invalid && contactForm.get('phone')?.touched) {
-                      <span class="text-red-500 font-bdo text-[13px]">Telefon nömrəsi tələb olunur</span>
+                      <span class="text-red-500 font-bdo text-[13px]">
+                        @if (contactForm.get('phone')?.errors?.['required']) {
+                          {{ t().validation.phoneRequired }}
+                        } @else {
+                          {{ t().validation.phoneFormat }}
+                        }
+                      </span>
                     }
                   </div>
+                </div>
+
+                <div class="flex flex-col gap-1">
+                  <input type="text" formControlName="company" [placeholder]="t().company || t().careers.applyForm.companyPlaceholder" class="w-full h-[48px] rounded-[10px] bg-[#F7F9FC] border border-transparent px-[16px] font-bdo font-normal text-[16px] leading-[48px] text-[#0A1642] placeholder:text-[#80899D] focus:outline-none focus:border-[#4343FF] focus:ring-1 focus:ring-[#4343FF] transition-all">
                 </div>
 
                 <div class="flex flex-col gap-1">
@@ -157,13 +173,13 @@ import {switchMap, catchError, of} from 'rxjs';
                     </div>
 
                     <div *ngIf="isDropdownOpen()" class="absolute top-[calc(100%+4px)] left-0 w-full bg-[#FFFFFF] rounded-[10px] shadow-[0_4px_24px_rgba(0,0,0,0.1)] py-2 z-50 overflow-hidden border border-[#EBF0F7]">
-                        <div *ngFor="let option of serviceOptions; let i = index" (click)="selectOption(option.value)" class="px-[16px] py-[10px] font-bdo text-[16px] cursor-pointer transition-colors" [class.bg-[#4343FF]]="focusedOptionIndex() === i" [class.text-white]="focusedOptionIndex() === i" [class.text-[#0A1642]]="focusedOptionIndex() !== i" (mouseenter)="focusedOptionIndex.set(i)">
+                        <div *ngFor="let option of serviceOptions(); let i = index" (click)="selectOption(option.value)" class="px-[16px] py-[10px] font-bdo text-[16px] cursor-pointer transition-colors" [class.bg-[#4343FF]]="focusedOptionIndex() === i" [class.text-white]="focusedOptionIndex() === i" [class.text-[#0A1642]]="focusedOptionIndex() !== i" (mouseenter)="focusedOptionIndex.set(i)">
                             {{ option.label }}
                         </div>
                     </div>
                   </div>
                   @if (contactForm.get('service')?.invalid && contactForm.get('service')?.touched) {
-                    <span class="text-red-500 font-bdo text-[13px]">Zəhmət olmasa xidmət seçin</span>
+                    <span class="text-red-500 font-bdo text-[13px]">{{ t().validation.serviceRequired }}</span>
                   }
                 </div>
 
@@ -174,7 +190,7 @@ import {switchMap, catchError, of} from 'rxjs';
                 <div class="flex flex-col gap-1">
                   <textarea formControlName="message" [placeholder]="t().companyInfo" class="w-full h-[102px] rounded-[10px] bg-[#F7F9FC] border border-transparent px-[16px] pt-[13px] pb-[13px] font-bdo font-normal text-[16px] leading-[140%] text-[#0A1642] placeholder:text-[#80899D] focus:outline-none focus:border-[#4343FF] focus:ring-1 focus:ring-[#4343FF] transition-all resize-none" [class.border-red-500]="contactForm.get('message')?.invalid && contactForm.get('message')?.touched"></textarea>
                   @if (contactForm.get('message')?.invalid && contactForm.get('message')?.touched) {
-                    <span class="text-red-500 font-bdo text-[13px]">Zəhmət olmasa mesajınızı daxil edin</span>
+                    <span class="text-red-500 font-bdo text-[13px]">{{ t().validation.messageRequired }}</span>
                   }
                 </div>
 
@@ -226,6 +242,41 @@ export class ContactPageComponent {
       return items.filter(i => i.icon === 'location' || i.description?.toLowerCase().includes('ünvan'));
     });
 
+    readonly isDropdownOpen = signal(false);
+    readonly serviceOptions = signal<{ value: string; label: string }[]>([]);
+    readonly focusedOptionIndex = signal(-1);
+
+    readonly isSubmitting = signal(false);
+    readonly successMessage = signal<string | null>(null);
+    readonly errorMessage = signal<string | null>(null);
+
+    readonly contactForm = this.fb.group({
+        fullName: [
+            '',
+            [Validators.required]
+        ],
+        email: [
+            '',
+            [
+                Validators.required, Validators.email
+            ]
+        ],
+        phone: [
+            '',
+            [Validators.required]
+        ],
+        company: [''],
+        service: [
+            '',
+            [Validators.required]
+        ],
+        subject: [''],
+        message: [
+            '',
+            [Validators.required]
+        ]
+    });
+
     constructor() {
       this.languageService.locale$.pipe(
         switchMap(locale => this.apiService.getPageContents('contact', locale).pipe(catchError(() => of(null)))),
@@ -250,63 +301,28 @@ export class ContactPageComponent {
           }
         }
       });
+
+      this.languageService.locale$.pipe(
+        switchMap(locale => this.apiService.getServicesLookup(locale).pipe(catchError(() => of([])))),
+        takeUntilDestroyed(this.destroyRef)
+      ).subscribe(res => {
+        if (Array.isArray(res)) {
+          const opts = res.map((s: any) => ({
+            value: String(s.id),
+            label: s.name || s.title || ''
+          }));
+          this.serviceOptions.set(opts);
+        }
+      });
     }
 
     getPhoneTitlesJoined(): string {
       return this.phoneItems().map(p => p.title).join(', ');
     }
 
-    readonly isDropdownOpen = signal(false);
-    readonly serviceOptions = [
-        {
-            value: 'it-consulting',
-            label: 'İT Konsaltinq'
-        }, {
-            value: 'infrastructure',
-            label: 'İnfrastruktur və Şəbəkə'
-        }, {
-            value: 'cloud',
-            label: 'Bulud Texnologiyaları'
-        }, {
-            value: 'cyber-security',
-            label: 'Kiber Təhlükəsizlik'
-        }
-    ];
-    readonly focusedOptionIndex = signal(-1);
-
-    readonly isSubmitting = signal(false);
-    readonly successMessage = signal<string | null>(null);
-    readonly errorMessage = signal<string | null>(null);
-
-    readonly contactForm = this.fb.group({
-        fullName: [
-            '',
-            [Validators.required]
-        ],
-        email: [
-            '',
-            [
-                Validators.required, Validators.email
-            ]
-        ],
-        phone: [
-            '',
-            [Validators.required]
-        ],
-        service: [
-            '',
-            [Validators.required]
-        ],
-        subject: [''],
-        message: [
-            '',
-            [Validators.required]
-        ]
-    });
-
     getSelectedServiceLabel(): string {
         const value = this.contactForm.get('service')?.value;
-        const option = this.serviceOptions.find(o => o.value === value);
+        const option = this.serviceOptions().find(o => o.value === value);
         return option ? option.label : '';
     }
 
@@ -315,7 +331,7 @@ export class ContactPageComponent {
         this.isDropdownOpen.update(v => !v);
         if (this.isDropdownOpen()) {
             const currentVal = this.contactForm.get('service')?.value;
-            const idx = this.serviceOptions.findIndex(o => o.value === currentVal);
+            const idx = this.serviceOptions().findIndex(o => o.value === currentVal);
             this.focusedOptionIndex.set(idx >= 0 ? idx : 0);
         }
     }
@@ -337,7 +353,7 @@ export class ContactPageComponent {
                 event.preventDefault();
                 this.isDropdownOpen.set(true);
                 const currentVal = this.contactForm.get('service')?.value;
-                const idx = this.serviceOptions.findIndex(o => o.value === currentVal);
+                const idx = this.serviceOptions().findIndex(o => o.value === currentVal);
                 this.focusedOptionIndex.set(idx >= 0 ? idx : 0);
             }
             return;
@@ -346,7 +362,7 @@ export class ContactPageComponent {
         switch (event.key) {
             case 'ArrowDown':
                 event.preventDefault();
-                this.focusedOptionIndex.update(i => i < this.serviceOptions.length - 1 ? i + 1 : i);
+                this.focusedOptionIndex.update(i => i < this.serviceOptions().length - 1 ? i + 1 : i);
                 break;
             case 'ArrowUp':
                 event.preventDefault();
@@ -356,8 +372,8 @@ export class ContactPageComponent {
             case ' ':
                 event.preventDefault();
                 const idx = this.focusedOptionIndex();
-                if (idx >= 0 && idx < this.serviceOptions.length) {
-                    this.selectOption(this.serviceOptions[idx].value);
+                if (idx >= 0 && idx < this.serviceOptions().length) {
+                    this.selectOption(this.serviceOptions()[idx].value);
                 }
                 break;
             case 'Escape':
@@ -380,10 +396,10 @@ export class ContactPageComponent {
         const formVal = this.contactForm.value;
         const payload = {
           fullName: formVal.fullName || '',
-          email: formVal.email || '',
-          phone: formVal.phone || '',
-          service: formVal.service || '',
-          subject: formVal.subject || this.getSelectedServiceLabel() || 'Saytdan mesaj',
+          email: formVal.email ? formVal.email.trim() : '',
+          phone: formVal.phone ? formVal.phone.trim() : null,
+          company: formVal.company ? formVal.company.trim() : null,
+          serviceId: formVal.service || null,
           message: formVal.message || ''
         };
 
@@ -393,9 +409,9 @@ export class ContactPageComponent {
             this.successMessage.set('Mesajınız uğurla göndərildi. Təşəkkür edirik!');
             this.contactForm.reset();
           },
-          error: () => {
+          error: (err) => {
             this.isSubmitting.set(false);
-            this.errorMessage.set('Mesaj göndərilərkən xəta baş verdi. Zəhmət olmasa, yenidən cəhd edin.');
+            this.errorMessage.set(err?.error?.message || 'Mesaj göndərilərkən xəta baş verdi. Zəhmət olmasa, yenidən cəhd edin.');
           }
         });
     }

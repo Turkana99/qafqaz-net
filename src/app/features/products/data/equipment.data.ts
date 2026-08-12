@@ -13,6 +13,7 @@ export interface EquipmentGroup {
 
 export interface EquipmentCategory {
   readonly id: string;
+  readonly slug?: string;
   readonly label: string;
   readonly defaultArrowIcon: string;
   readonly activeArrowIcon: string;

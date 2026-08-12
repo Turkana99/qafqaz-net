@@ -31,7 +31,8 @@ export const environment = {
     },
     services: {
         getAllServices: `${apiUrl}/public/services`,
-        getServiceDetails: `${apiUrl}/public/services/{slug}`
+        getServiceDetails: `${apiUrl}/public/services/{slug}`,
+        getServicesLookup: `${apiUrl}/public/services/lookup`
     },
     team: {
         getAllTeam: `${apiUrl}/public/team`

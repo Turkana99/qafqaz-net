@@ -16,7 +16,11 @@ import { Product } from '../../../../core/models/api.model';
   imports: [CommonModule, RouterLink, RevealDirective],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    @if (product(); as item) {
+    @if (isLoading()) {
+      <div class="bg-[#F7F9FC] pt-[180px] pb-32 w-full min-h-screen flex items-center justify-center">
+        <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#4343FF]"></div>
+      </div>
+    } @else if (product(); as item) {
       <!-- Hero Header -->
       <div class="bg-[#F7F9FC] pt-[140px] pb-16 w-full">
         <div class="container-main">
@@ -171,6 +175,7 @@ export class ProductDetailPageComponent {
   private readonly metaService = inject(Meta);
   private readonly destroyRef = inject(DestroyRef);
 
+  readonly isLoading = signal(true);
   readonly product = signal<Product | null>(null);
   readonly selectedImage = signal<string>('');
   readonly relatedProducts = signal<Product[]>([]);
@@ -207,7 +212,8 @@ export class ProductDetailPageComponent {
       this.route.paramMap,
       this.languageService.locale$
     ]).pipe(
-      switchMap(([params]) => {
+      switchMap(([params, locale]) => {
+        this.isLoading.set(true);
         const slug = params.get('slug');
         if (!slug) return of(null);
         return this.apiService.getProductBySlug(slug).pipe(
@@ -216,6 +222,7 @@ export class ProductDetailPageComponent {
       }),
       takeUntilDestroyed(this.destroyRef)
     ).subscribe((prod: any) => {
+      this.isLoading.set(false);
       this.product.set(prod);
       if (prod) {
         const firstImg = prod.coverImage || prod.imageUrl || (prod.images && prod.images[0]) || '';

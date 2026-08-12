@@ -14,6 +14,7 @@ export interface TranslationSchema {
     selectService: string;
     subject: string;
     companyInfo: string;
+    company: string;
     sendRequest: string;
 
     moreInformation: string;
@@ -76,6 +77,7 @@ export interface TranslationSchema {
             namePlaceholder: string;
             emailPlaceholder: string;
             phonePlaceholder: string;
+            companyPlaceholder: string;
             cvUploadLabel: string;
             cvButtonText: string;
             cvNote: string;
@@ -95,6 +97,21 @@ export interface TranslationSchema {
             next: string;
         };
     };
+    validation: {
+        required: string;
+        emailFormat: string;
+        phoneFormat: string;
+        minLength: string;
+        maxLength: string;
+        invalidFileType: string;
+        fileSizeExceeded: string;
+        fullNameRequired: string;
+        emailRequired: string;
+        phoneRequired: string;
+        serviceRequired: string;
+        messageRequired: string;
+        cvRequired: string;
+    };
 };
 
 export const TRANSLATIONS_AZ: TranslationSchema = {
@@ -109,8 +126,9 @@ export const TRANSLATIONS_AZ: TranslationSchema = {
     contactUs: "Bizimlə əlaqə",
     selectService: "Xidmət seçin",
     subject: "Mövzu",
-    companyInfo: "Şirkətiniz haqqında qısa məlumat",
-    sendRequest: "Sorğunuzu göndərin",
+    companyInfo: "Qısa məlumat buraxın, komandamız ən qısa zamanda sizinlə əlaqə saxlayacaq.",
+    company: "Şirkət",
+    sendRequest: "Sorğu göndərin",
 
     moreInformation: "Ətraflı məlumat",
     innovativeSolutions: "İnnovativ həllər, ölçülə bilən nəticələr",
@@ -172,6 +190,7 @@ export const TRANSLATIONS_AZ: TranslationSchema = {
             namePlaceholder: "Ad və soyadınızı daxil edin",
             emailPlaceholder: "Emailinizi daxil edin",
             phonePlaceholder: "Telefon nömrəniz",
+            companyPlaceholder: "Şirkət",
             cvUploadLabel: "CV faylını yüklə",
             cvButtonText: "CV faylını seç",
             cvNote: "Sadəcə PDF və ya DOCX fayl, maks: 4mb",
@@ -185,11 +204,26 @@ export const TRANSLATIONS_AZ: TranslationSchema = {
     },
     shared: {
         ctaButton: "Sorğu göndər",
-        ctaTrustBadge: "100+ şirket güvənlə bizi seçir",
+        ctaTrustBadge: "100+ şirkət güvənlə bizi seçir",
         pagination: {
             prev: "Əvvəlki",
             next: "Növbəti"
         }
+    },
+    validation: {
+        required: "Bu xana mütləq doldurulmalıdır",
+        emailFormat: "Düzgün e-poçt ünvanı daxil edin",
+        phoneFormat: "Düzgün telefon nömrəsi daxil edin",
+        minLength: "Daxil edilən mətn çox qısadır",
+        maxLength: "Daxil edilən mətn çox uzundur",
+        invalidFileType: "Yalnız PDF, DOC və ya DOCX faylları qəbul edilir",
+        fileSizeExceeded: "Faylın həcmi maksimum həddi aşır",
+        fullNameRequired: "Zəhmət olmasa ad və soyadınızı daxil edin",
+        emailRequired: "Zəhmət olmasa e-poçt ünvanınızı daxil edin",
+        phoneRequired: "Zəhmət olmasa telefon nömrənizi daxil edin",
+        serviceRequired: "Zəhmət olmasa xidmət seçin",
+        messageRequired: "Zəhmət olmasa mesajınızı daxil edin",
+        cvRequired: "Zəhmət olmasa CV faylınızı yükləyin"
     }
 };
 
@@ -205,8 +239,9 @@ export const TRANSLATIONS_EN: TranslationSchema = {
     contactUs: "Contact us",
     selectService: "Select service",
     subject: "Subject",
-    companyInfo: "Brief information about your company",
-    sendRequest: "Send your request",
+    companyInfo: "Leave a brief message, our team will contact you as soon as possible.",
+    company: "Company",
+    sendRequest: "Send Your Request",
 
     moreInformation: "More information",
     innovativeSolutions: "Innovative solutions, measurable results",
@@ -268,6 +303,7 @@ export const TRANSLATIONS_EN: TranslationSchema = {
             namePlaceholder: "Enter your full name",
             emailPlaceholder: "Enter your email",
             phonePlaceholder: "Your phone number",
+            companyPlaceholder: "Company",
             cvUploadLabel: "Upload CV file",
             cvButtonText: "Choose CV file",
             cvNote: "PDF or DOCX only, max 4MB",
@@ -286,6 +322,21 @@ export const TRANSLATIONS_EN: TranslationSchema = {
             prev: "Previous",
             next: "Next"
         }
+    },
+    validation: {
+        required: "This field is required",
+        emailFormat: "Please enter a valid email address",
+        phoneFormat: "Please enter a valid phone number",
+        minLength: "Entered text is too short",
+        maxLength: "Entered text is too long",
+        invalidFileType: "Only PDF, DOC, or DOCX files are accepted",
+        fileSizeExceeded: "File size exceeds the maximum limit",
+        fullNameRequired: "Please enter your full name",
+        emailRequired: "Please enter your email address",
+        phoneRequired: "Please enter your phone number",
+        serviceRequired: "Please select a service",
+        messageRequired: "Please enter your message",
+        cvRequired: "Please upload your CV"
     }
 };
 
@@ -302,6 +353,7 @@ export const TRANSLATIONS_RU: TranslationSchema = {
     selectService: "Выберите услугу",
     subject: "Предмет",
     companyInfo: "Краткая информация о вашей компании.",
+    company: "Компания",
     sendRequest: "Отправьте свой запрос",
 
     moreInformation: "Подробнее",
@@ -364,6 +416,7 @@ export const TRANSLATIONS_RU: TranslationSchema = {
             namePlaceholder: "Введите ваше имя",
             emailPlaceholder: "Введите email",
             phonePlaceholder: "Ваш номер телефона",
+            companyPlaceholder: "Компания",
             cvUploadLabel: "Загрузить резюме",
             cvButtonText: "Выбрать файл",
             cvNote: "Только PDF или DOCX, макс. 4МБ",
@@ -382,6 +435,21 @@ export const TRANSLATIONS_RU: TranslationSchema = {
             prev: "Назад",
             next: "Далее"
         }
+    },
+    validation: {
+        required: "Это поле обязательно для заполнения",
+        emailFormat: "Пожалуйста, введите корректный адрес электронной почты",
+        phoneFormat: "Пожалуйста, введите корректный номер телефона",
+        minLength: "Введенный текст слишком короткий",
+        maxLength: "Введенный текст слишком длинный",
+        invalidFileType: "Принимаются только файлы PDF, DOC или DOCX",
+        fileSizeExceeded: "Размер файла превышает допустимый лимит",
+        fullNameRequired: "Пожалуйста, введите ваше имя и фамилию",
+        emailRequired: "Пожалуйста, введите ваш адрес электронной почты",
+        phoneRequired: "Пожалуйста, введите ваш номер телефона",
+        serviceRequired: "Пожалуйста, выберите услугу",
+        messageRequired: "Пожалуйста, введите ваше сообщение",
+        cvRequired: "Пожалуйста, загрузите ваше резюме"
     }
 };
 

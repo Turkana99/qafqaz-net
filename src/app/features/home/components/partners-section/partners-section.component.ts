@@ -26,7 +26,7 @@ import { TranslationService } from '../../../../core/services/translation.servic
               routerLink="/partners"
               class="hidden md:inline-flex group h-[48px] shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-[12px] bg-[#F7F9FC] px-6 font-bdo text-[16px] font-medium leading-none text-[#4343FF] transition-colors duration-300 hover:text-[#0000AD] focus-visible:text-[#0000AD] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0000AD] focus-visible:ring-offset-2"
             >
-              <span class="font-bdo font-bold transition-colors duration-300 group-hover:text-[#0000AD] group-focus-visible:text-[#0000AD]">{{ buttonText() || t().showAllPartners }}</span>
+              <span class="font-bdo font-bold transition-colors duration-300 group-hover:text-[#0000AD] group-focus-visible:text-[#0000AD]">{{ formattedButtonText() }}</span>
               <span
                 aria-hidden="true"
                 class="h-5 w-5 bg-current transition-colors duration-300"
@@ -50,7 +50,7 @@ import { TranslationService } from '../../../../core/services/translation.servic
             routerLink="/partners"
             class="group inline-flex h-[48px] w-full items-center justify-center gap-1.5 whitespace-nowrap rounded-[12px] bg-[#F7F9FC] px-6 font-bdo text-[16px] font-medium leading-none text-[#4343FF] transition-colors duration-300 hover:text-[#0000AD] focus-visible:text-[#0000AD] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0000AD] focus-visible:ring-offset-2"
           >
-            <span class="font-bdo font-bold transition-colors duration-300 group-hover:text-[#0000AD] group-focus-visible:text-[#0000AD]">{{ buttonText() || t().showAllPartners }}</span>
+            <span class="font-bdo font-bold transition-colors duration-300 group-hover:text-[#0000AD] group-focus-visible:text-[#0000AD]">{{ formattedButtonText() }}</span>
             <span
               aria-hidden="true"
               class="h-5 w-5 bg-current transition-colors duration-300"
@@ -71,6 +71,12 @@ export class PartnersSectionComponent {
   body = input<string | undefined>(undefined);
   buttonText = input<string | undefined>(undefined);
   items = input<any[] | undefined>(undefined);
+
+  readonly formattedButtonText = computed(() => {
+    const raw = this.buttonText() || this.t().showAllPartners;
+    if (!raw) return '';
+    return raw.charAt(0).toUpperCase() + raw.slice(1);
+  });
 
   readonly partners = computed(() => {
     const list = this.items();

@@ -50,7 +50,11 @@ interface VacancyDetail {
     ],
     changeDetection: ChangeDetectionStrategy.OnPush,
     template: `
-    @if (vacancy(); as item) {
+    @if (isLoading()) {
+      <div class="bg-[#F7F9FC] pt-[180px] pb-32 w-full min-h-screen flex items-center justify-center">
+        <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#4343FF]"></div>
+      </div>
+    } @else if (vacancy(); as item) {
       <!-- Jumbotron -->
       <section class="w-full bg-[#F7F9FC] pt-[180px] pb-16 lg:pb-32">
         <div class="container-main">
@@ -620,11 +624,13 @@ export class CareerDetailPageComponent {
         ]
     });
 
+    readonly isLoading = signal < boolean > (true);
     readonly selectedFileName = signal < string > ('');
     readonly fileError = signal < string > ('');
 
     constructor() {
         combineLatest([this.route.paramMap, this.languageService.locale$]).pipe(switchMap(([params, locale]) => {
+            this.isLoading.set(true);
             const slug = params.get('slug');
             return forkJoin({
                 pageContent: this.apiService.getPageContents('careers', locale).pipe(catchError(() => of(null))),
@@ -634,6 +640,7 @@ export class CareerDetailPageComponent {
                 })) : of(null)
             });
         }), takeUntilDestroyed(this.destroyRef)).subscribe(({pageContent, vacRes} : any) => {
+            this.isLoading.set(false);
             if (pageContent ?. sections) {
                 const secs = pageContent.sections;
                 if (secs.vacancy_about ?. title) {
@@ -845,7 +852,7 @@ export class CareerDetailPageComponent {
             const extension = '.' + file.name.split('.').pop() ?. toLowerCase();
 
             if (! validTypes.includes(file.type) && ! validExtensions.includes(extension)) {
-                this.fileError.set('Yalnız PDF, DOC və ya DOCX faylları qəbul edilir');
+                this.fileError.set(this.t().validation.invalidFileType);
                 this.selectedFileName.set('');
                 this.applyForm.patchValue({cv: null});
                 this.applyForm.get('cv') ?. markAsTouched();
@@ -854,7 +861,7 @@ export class CareerDetailPageComponent {
 
             // Validate size (4MB = 4 * 1024 * 1024)
             if (file.size > 4 * 1024 * 1024) {
-                this.fileError.set('Faylın həcmi 4MB-dan çox olmamalıdır');
+                this.fileError.set(this.t().validation.fileSizeExceeded);
                 this.selectedFileName.set('');
                 this.applyForm.patchValue({cv: null});
                 this.applyForm.get('cv') ?. markAsTouched();
@@ -871,7 +878,7 @@ export class CareerDetailPageComponent {
         if (this.applyForm.invalid) {
             this.applyForm.markAllAsTouched();
             if (!this.applyForm.get('cv') ?. value) {
-                this.fileError.set('Zəhmət olmasa CV faylını yükləyin');
+                this.fileError.set(this.t().validation.cvRequired);
             }
             return;
         }

@@ -19,7 +19,11 @@ import {switchMap, catchError, of, combineLatest, forkJoin} from 'rxjs';
     ],
     changeDetection: ChangeDetectionStrategy.OnPush,
     template: `
-    @if (blog(); as item) {
+    @if (isLoading()) {
+      <div class="bg-[#F7F9FC] pt-[180px] pb-32 w-full min-h-screen flex items-center justify-center">
+        <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#4343FF]"></div>
+      </div>
+    } @else if (blog(); as item) {
       <!-- Top Section with Blur -->
       <div class="bg-[#F7F9FC] backdrop-blur-[50px] pt-[180px]  w-full">
         <div class="container-main flex flex-col items-center">
@@ -177,6 +181,7 @@ export class BlogDetailPageComponent {
 
     readonly t = this.translationService.translations;
 
+    readonly isLoading = signal(true);
     readonly blog = signal<any | null>(null);
     readonly relatedBlogs = signal<any[]>(ALL_BLOGS.slice(0, 2));
     readonly relatedPostsTitle = signal<string | undefined>(undefined);
@@ -187,6 +192,7 @@ export class BlogDetailPageComponent {
         this.languageService.locale$
       ]).pipe(
         switchMap(([params, locale]) => {
+          this.isLoading.set(true);
           const slug = params.get('slug');
           return forkJoin({
             postRes: slug ? this.apiService.getBlogBySlug(slug).pipe(
@@ -200,6 +206,7 @@ export class BlogDetailPageComponent {
         }),
         takeUntilDestroyed(this.destroyRef)
       ).subscribe(({ postRes, pageContent }: any) => {
+        this.isLoading.set(false);
         if (pageContent?.sections?.related_posts?.title) {
           this.relatedPostsTitle.set(pageContent.sections.related_posts.title);
         }

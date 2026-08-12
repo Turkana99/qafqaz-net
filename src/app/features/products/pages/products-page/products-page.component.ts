@@ -111,6 +111,8 @@ export const INITIAL_PRODUCT_BENEFITS: ReadonlyArray<ProductBenefit> = [
     <app-equipment-section
       [categories]="categories()"
       [products]="products()"
+      [selectedCategorySlug]="selectedCategorySlug()"
+      (categorySelect)="onCategorySelect($event)"
     ></app-equipment-section>
 
     <!-- 3. Shared Call To Action Section -->
@@ -124,6 +126,9 @@ export class ProductsPageComponent {
 
   readonly categories = signal<any[]>([]);
   readonly products = signal<any[]>([]);
+  readonly selectedCategorySlug = signal<string | null>(null);
+  readonly currentPage = signal<number>(1);
+  readonly pageSize = 100;
   readonly heroTitle = signal<string>('');
   readonly heroDescription = signal<string>('');
   readonly benefits = signal<ProductBenefit[]>(INITIAL_PRODUCT_BENEFITS as ProductBenefit[]);
@@ -131,24 +136,30 @@ export class ProductsPageComponent {
   constructor() {
     this.languageService.locale$.pipe(
       switchMap((locale) => forkJoin({
-        categoriesRes: this.apiService.getProductCategories().pipe(
+        categoriesRes: this.apiService.getProductCategories(locale).pipe(
           catchError(() => of([]))
-        ),
-        productsRes: this.apiService.getProducts(1, 100).pipe(
-          catchError(() => of(null))
         ),
         pageContent: this.apiService.getPageContents('products', locale).pipe(
           catchError(() => of(null))
         )
       })),
       takeUntilDestroyed(this.destroyRef)
-    ).subscribe(({ categoriesRes, productsRes, pageContent }: any) => {
-      if (Array.isArray(categoriesRes)) {
+    ).subscribe(({ categoriesRes, pageContent }: any) => {
+      if (Array.isArray(categoriesRes) && categoriesRes.length > 0) {
         this.categories.set(categoriesRes);
+        const firstCategory = categoriesRes[0];
+        const firstSlug = firstCategory.slug || firstCategory.id;
+        if (firstSlug) {
+          const slugStr = String(firstSlug);
+          this.selectedCategorySlug.set(slugStr);
+          this.loadProducts(1, slugStr);
+        } else {
+          this.loadProducts(1);
+        }
+      } else {
+        this.loadProducts(1);
       }
-      if (productsRes && productsRes.data) {
-        this.products.set(productsRes.data);
-      }
+
       if (pageContent?.sections) {
         const sections = pageContent.sections;
         if (sections.hero) {
@@ -191,5 +202,26 @@ export class ProductsPageComponent {
         }
       }
     });
+  }
+
+  loadProducts(page = 1, categorySlug?: string) {
+    const slug = categorySlug || this.selectedCategorySlug() || undefined;
+    const locale = this.languageService.currentLocale();
+    this.apiService.getProducts(page, this.pageSize, slug, locale).pipe(
+      catchError(() => of(null))
+    ).subscribe((res: any) => {
+      if (res) {
+        const list = Array.isArray(res.data) ? res.data : (Array.isArray(res) ? res : []);
+        this.products.set(list);
+      }
+    });
+  }
+
+  onCategorySelect(categorySlug: string) {
+    if (this.selectedCategorySlug() !== categorySlug) {
+      this.selectedCategorySlug.set(categorySlug);
+      this.currentPage.set(1);
+      this.loadProducts(1, categorySlug);
+    }
   }
 }

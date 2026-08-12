@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, signal, input, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, signal, input, output, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { EQUIPMENT_CATEGORIES, EquipmentCategory } from '../../data/equipment.data';
 import { RevealDirective } from '../../../../shared/ui/reveal/reveal.directive';
@@ -29,18 +29,18 @@ import { TranslationService } from '../../../../core/services/translation.servic
 
             <!-- Category Navigation List -->
             <div class="flex flex-col w-full">
-              @for (category of dynamicCategories(); track category.id; let i = $index) {
+              @for (category of dynamicCategories(); track category.slug || category.id; let i = $index) {
                 <div appReveal revealDirection="left" [revealDelay]="100 + i * 60" class="w-full">
                   <button
                     type="button"
-                    (click)="selectCategory(category.id)"
-                    [attr.aria-pressed]="activeCategory().id === category.id"
+                    (click)="selectCategory(category.slug || category.id)"
+                    [attr.aria-pressed]="activeCategorySlug() === (category.slug || category.id)"
                     class="w-full flex items-center justify-between py-4 sm:py-5 text-left border-b border-[#F0F2F5] group transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#18E792]"
                   >
                     <span
                       class="font-bdo text-[16px] sm:text-[18px] leading-[20px] transition-colors duration-300 pr-4"
                       [class]="
-                        activeCategory().id === category.id
+                        activeCategorySlug() === (category.slug || category.id)
                           ? 'font-medium text-[#18E792]'
                           : 'font-normal text-[#80899D] group-hover:text-[#18E792] group-focus-visible:text-[#18E792]'
                       "
@@ -56,7 +56,7 @@ import { TranslationService } from '../../../../core/services/translation.servic
                         aria-hidden="true"
                         class="absolute inset-0 w-full h-full object-contain transition-opacity duration-300 ease-in-out"
                         [class]="
-                          activeCategory().id === category.id
+                          activeCategorySlug() === (category.slug || category.id)
                             ? 'opacity-0'
                             : 'opacity-100 group-hover:opacity-0 group-focus-visible:opacity-0'
                         "
@@ -68,7 +68,7 @@ import { TranslationService } from '../../../../core/services/translation.servic
                         aria-hidden="true"
                         class="absolute inset-0 w-full h-full object-contain transition-opacity duration-300 ease-in-out"
                         [class]="
-                          activeCategory().id === category.id
+                          activeCategorySlug() === (category.slug || category.id)
                             ? 'opacity-100'
                             : 'opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100'
                         "
@@ -194,7 +194,8 @@ export class EquipmentSectionComponent {
 
   readonly categories = input<any[] | undefined>(undefined);
   readonly products = input<any[] | undefined>(undefined);
-  readonly selectedCategoryId = signal<string>(EQUIPMENT_CATEGORIES[0].id);
+  readonly selectedCategorySlug = input<string | null>(null);
+  readonly categorySelect = output<string>();
 
   readonly dynamicCategories = computed<EquipmentCategory[]>(() => {
     const list = this.products() || [];
@@ -203,24 +204,19 @@ export class EquipmentSectionComponent {
     if (catList && catList.length > 0) {
       const sorted = [...catList].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
       return sorted.map((cat, idx) => {
-        const catId = String(cat.slug || cat.id || `api_cat_${idx}`);
+        const catSlug = String(cat.slug || cat.id || `api_cat_${idx}`);
         const catName = cat.name || 'Kateqoriya';
-        const matchedProds = list.filter(p =>
-          p.categoryName === catName ||
-          p.category?.name === catName ||
-          p.category?.slug === cat.slug ||
-          p.categorySlug === cat.slug ||
-          String(p.categoryId) === String(cat.id)
-        );
+        const matchedProds = list;
 
         return {
-          id: catId,
+          id: catSlug,
+          slug: catSlug,
           label: catName,
           defaultArrowIcon: 'assets/icons/gray-arrow.svg',
           activeArrowIcon: 'assets/icons/green-arrow.svg',
           groups: [
             {
-              id: `grp_${catId}`,
+              id: `grp_${catSlug}`,
               title: catName,
               slider: matchedProds.length > 4,
               items: matchedProds.map(it => ({
@@ -253,6 +249,7 @@ export class EquipmentSectionComponent {
       const catId = `api_cat_${i++}`;
       result.push({
         id: catId,
+        slug: catId,
         label: catName,
         defaultArrowIcon: 'assets/icons/gray-arrow.svg',
         activeArrowIcon: 'assets/icons/green-arrow.svg',
@@ -276,13 +273,21 @@ export class EquipmentSectionComponent {
     return result.length > 0 ? result : [...EQUIPMENT_CATEGORIES];
   });
 
-  readonly activeCategory = computed<EquipmentCategory>(() => {
+  readonly activeCategorySlug = computed<string>(() => {
+    const passedSlug = this.selectedCategorySlug();
+    if (passedSlug) return passedSlug;
     const cats = this.dynamicCategories();
-    return cats.find((c) => c.id === this.selectedCategoryId()) ?? cats[0];
+    return cats[0]?.slug || cats[0]?.id || '';
   });
 
-  selectCategory(id: string): void {
-    this.selectedCategoryId.set(id);
+  readonly activeCategory = computed<EquipmentCategory>(() => {
+    const cats = this.dynamicCategories();
+    const currentSlug = this.activeCategorySlug();
+    return cats.find((c) => (c.slug || c.id) === currentSlug) ?? cats[0];
+  });
+
+  selectCategory(slug: string): void {
+    this.categorySelect.emit(slug);
   }
 
   scrollSlider(element: HTMLDivElement, amount: number): void {

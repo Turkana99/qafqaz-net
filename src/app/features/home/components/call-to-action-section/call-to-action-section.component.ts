@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, input, inject, signal, DestroyRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { switchMap, catchError, of } from 'rxjs';
+import { switchMap, catchError, of, forkJoin } from 'rxjs';
 import { RouterLink } from '@angular/router';
 import { ButtonComponent } from '../../../../shared/ui/button/button.component';
 import { RevealDirective } from '../../../../shared/ui/reveal/reveal.directive';
@@ -37,11 +37,11 @@ interface TrustedCompanyLogo {
         >
           <a href="#" [class]="trustButtonClass()" [style]="trustButtonStyle()">
             <div class="flex items-center shrink-0">
-              @for (logo of trustLogos; track logo.src; let i = $index) {
+              @for (logo of trustLogos(); track logo.src; let i = $index) {
                 <img
                   [src]="logo.src"
                   [alt]="logo.alt"
-                  class="w-[30px] h-[30px] sm:w-[38px] sm:h-[38px] rounded-full border border-white object-cover"
+                  class="w-[30px] h-[30px] sm:w-[38px] sm:h-[38px] rounded-full border border-white bg-white p-1 object-contain shrink-0"
                   [style.marginLeft]="i === 0 ? '0' : '-8px'"
                 />
               }
@@ -104,11 +104,11 @@ interface TrustedCompanyLogo {
           <div class="hidden md:flex w-full md:w-auto justify-center">
             <a href="#" [class]="trustButtonClass()" [style]="trustButtonStyle()">
               <div class="flex items-center shrink-0">
-                @for (logo of trustLogos; track logo.src; let i = $index) {
+                @for (logo of trustLogos(); track logo.src; let i = $index) {
                   <img
                     [src]="logo.src"
                     [alt]="logo.alt"
-                    class="w-[30px] h-[30px] sm:w-[38px] sm:h-[38px] rounded-full border border-white object-cover"
+                    class="w-[30px] h-[30px] sm:w-[38px] sm:h-[38px] rounded-full border border-white bg-white p-1 object-contain shrink-0"
                     [style.marginLeft]="i === 0 ? '0' : '-8px'"
                   />
                 }
@@ -140,15 +140,23 @@ export class CallToActionSectionComponent {
   readonly ctaDescription = signal<string>('Müasir texnologiyalar və təcrübəli komanda ilə rəqəmsal transformasiyanızı sürətləndiririk.');
   readonly ctaImageUrl = signal<string | null>(null);
 
+  readonly trustLogos = signal<TrustedCompanyLogo[]>([
+    { src: 'assets/logos/survey1.svg', alt: 'Company 1' },
+    { src: 'assets/logos/survey2.svg', alt: 'Company 2' },
+    { src: 'assets/logos/survey3.svg', alt: 'Company 3' },
+    { src: 'assets/logos/survey4.svg', alt: 'Company 4' },
+  ]);
+
   constructor() {
     this.languageService.locale$.pipe(
-      switchMap((locale) => this.apiService.getPageContents('shared', locale).pipe(
-        catchError(() => of(null))
-      )),
+      switchMap((locale) => forkJoin({
+        pageContent: this.apiService.getPageContents('shared', locale).pipe(catchError(() => of(null))),
+        partners: this.apiService.getPartners(locale).pipe(catchError(() => of(null)))
+      })),
       takeUntilDestroyed(this.destroyRef)
-    ).subscribe((data: any) => {
-      if (data?.sections?.cta) {
-        const cta = data.sections.cta;
+    ).subscribe(({ pageContent, partners }) => {
+      if (pageContent?.sections?.cta) {
+        const cta = pageContent.sections.cta;
         if (cta.title) {
           this.ctaTitle.set(cta.title);
         }
@@ -159,19 +167,28 @@ export class CallToActionSectionComponent {
         }
         this.ctaImageUrl.set(cta.imageUrl || null);
       }
+
+      if (Array.isArray(partners) && partners.length > 0) {
+        const first4 = partners.slice(0, 4);
+        const mappedLogos = first4.map((p: any, idx: number) => ({
+          src: p.logoUrl || `assets/logos/survey${idx + 1}.svg`,
+          alt: p.name || `Company ${idx + 1}`
+        }));
+        while (mappedLogos.length < 4) {
+          const idx = mappedLogos.length;
+          mappedLogos.push({
+            src: `assets/logos/survey${idx + 1}.svg`,
+            alt: `Company ${idx + 1}`
+          });
+        }
+        this.trustLogos.set(mappedLogos);
+      }
     });
   }
 
   openModal() {
     this.modalService.open();
   }
-
-  readonly trustLogos: readonly TrustedCompanyLogo[] = [
-    { src: 'assets/logos/survey1.svg', alt: 'Company 1' },
-    { src: 'assets/logos/survey2.svg', alt: 'Company 2' },
-    { src: 'assets/logos/survey3.svg', alt: 'Company 3' },
-    { src: 'assets/logos/survey4.svg', alt: 'Company 4' },
-  ];
 
   sectionClass = computed(() => {
     return this.variant() === 'dark'
@@ -193,8 +210,8 @@ export class CallToActionSectionComponent {
 
   trustButtonClass = computed(() => {
     return this.variant() === 'dark'
-      ? 'flex items-center justify-center md:justify-start w-full md:w-auto h-[56px] sm:h-[64px] rounded-[12px] gap-[12px] px-4 sm:px-6 py-2 border border-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-white hover:bg-white/10 transition-colors duration-300'
-      : 'flex items-center justify-center md:justify-start w-full md:w-auto h-[56px] sm:h-[64px] rounded-[12px] gap-[12px] px-4 sm:px-6 py-2 border border-[#F7F9FC] bg-[#0000FE] backdrop-blur-[15px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#0000FE] hover:bg-[#0000FE]/90 transition-colors duration-300';
+      ? 'flex items-center justify-center md:justify-start w-full md:w-auto h-[56px] sm:h-[64px] rounded-[12px] gap-[12px] pl-3 pr-5 sm:pl-3.5 sm:pr-6 py-2 border border-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-white hover:bg-white/10 transition-colors duration-300'
+      : 'flex items-center justify-center md:justify-start w-full md:w-auto h-[56px] sm:h-[64px] rounded-[12px] gap-[12px] pl-3 pr-5 sm:pl-3.5 sm:pr-6 py-2 border border-[#F7F9FC] bg-[#0000FE] backdrop-blur-[15px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#0000FE] hover:bg-[#0000FE]/90 transition-colors duration-300';
   });
 
   trustButtonStyle = computed(() => {

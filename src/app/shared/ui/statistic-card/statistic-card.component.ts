@@ -1,15 +1,17 @@
-import { ChangeDetectionStrategy, Component, input } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { AboutStatistic } from '../../../core/constants/mock-data';
-import { AnimatedNumberComponent } from '../animated-number/animated-number.component';
-import { TooltipDirective } from '../tooltip/tooltip.directive';
+import {ChangeDetectionStrategy, Component, input} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {AboutStatistic} from '../../../core/constants/mock-data';
+import {AnimatedNumberComponent} from '../animated-number/animated-number.component';
+import {TooltipDirective} from '../tooltip/tooltip.directive';
 
 @Component({
-  selector: 'app-statistic-card',
-  standalone: true,
-  imports: [CommonModule, AnimatedNumberComponent, TooltipDirective],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  template: `
+    selector: 'app-statistic-card',
+    standalone: true,
+    imports: [
+        CommonModule, AnimatedNumberComponent, TooltipDirective
+    ],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    template: `
     <div class="bg-white rounded-[20px] shadow-[0_4px_20px_rgba(0,0,0,0.05)] p-5 sm:p-7 flex flex-col justify-between h-full w-full min-h-[160px]">
       <div>
         <div class="flex items-center flex-wrap">
@@ -36,19 +38,19 @@ import { TooltipDirective } from '../tooltip/tooltip.directive';
         >
           {{ stat().label }}
         </span>
-      </div>
 
-      @if (stat().description) {
-        <p 
-          class="text-[14px] sm:text-[15px] leading-[20px] text-[#80899D] font-normal font-bdo mt-3 line-clamp-3 cursor-default"
-          [appTooltip]="stat().description"
-        >
-          {{ stat().description }}
-        </p>
-      }
+        @if (stat().description) {
+          <p 
+            class="text-[14px] sm:text-[15px] leading-[20px] text-[#80899D] font-normal font-bdo mt-1.5 sm:mt-2 line-clamp-3 cursor-default"
+            [appTooltip]="stat().description"
+          >
+            {{ stat().description }}
+          </p>
+        }
+      </div>
     </div>
   `,
-  styles: [`
+    styles: [`
     :host {
       display: block;
       height: 100%;
@@ -62,5 +64,5 @@ import { TooltipDirective } from '../tooltip/tooltip.directive';
   `]
 })
 export class StatisticCardComponent {
-  stat = input.required<AboutStatistic>();
+    stat = input.required<AboutStatistic>();
 }

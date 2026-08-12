@@ -43,8 +43,12 @@ export class PublicApiService {
   }
 
   // 2. Blogs
-  getBlogCategories(): Observable<BlogCategory[]> {
-    return this.http.get<any>(environment.blogs.getAllBlogCategories).pipe(
+  getBlogCategories(locale?: string): Observable<BlogCategory[]> {
+    let params = new HttpParams();
+    if (locale) {
+      params = params.set('locale', locale);
+    }
+    return this.http.get<any>(environment.blogs.getAllBlogCategories, { params }).pipe(
       map(res => {
         const items = this.unwrapData<BlogCategory[]>(res);
         return Array.isArray(items) ? items : [];
@@ -65,14 +69,17 @@ export class PublicApiService {
     );
   }
 
-  getBlogs(page = 1, perPage = 10, categoryId?: string | number, locale?: string): Observable<PaginatedResponse<BlogPost>> {
+  getBlogs(page = 1, pageSize = 10, categorySlug?: string, locale?: string, status?: string | number): Observable<PaginatedResponse<BlogPost>> {
     let params = new HttpParams()
       .set('page', page.toString())
-      .set('perPage', perPage.toString())
-      .set('limit', perPage.toString());
+      .set('pageSize', pageSize.toString());
 
-    if (categoryId && categoryId !== 'all' && categoryId !== 0) {
-      params = params.set('categoryId', categoryId.toString());
+    if (categorySlug && categorySlug !== 'all' && categorySlug.trim() !== '') {
+      params = params.set('categorySlug', categorySlug.toString());
+    }
+
+    if (status !== undefined && status !== null && status !== '') {
+      params = params.set('status', status.toString());
     }
 
     if (locale) {
@@ -84,9 +91,10 @@ export class PublicApiService {
         const data = Array.isArray(res?.data) ? res.data : (Array.isArray(res) ? res : []);
         const meta = res?.meta || {
           current_page: page,
-          total_pages: Math.ceil(data.length / perPage) || 1,
+          total_pages: Math.ceil(data.length / pageSize) || 1,
           total: data.length,
-          per_page: perPage
+          per_page: pageSize,
+          page_size: pageSize
         };
         return { data, meta };
       })
@@ -102,7 +110,15 @@ export class PublicApiService {
 
   // 3. Contact Form
   sendContactMessage(payload: ContactMessageRequest): Observable<any> {
-    return this.http.post<any>(environment.contact.sendContactMessage, payload);
+    const body = {
+      fullName: payload.fullName || '',
+      email: payload.email || '',
+      phone: payload.phone ?? null,
+      company: payload.company ?? null,
+      serviceId: payload.serviceId ?? null,
+      message: payload.message || ''
+    };
+    return this.http.post<any>(environment.contact.sendContactMessage, body);
   }
 
   // 4. Financial Reports
@@ -127,6 +143,13 @@ export class PublicApiService {
         };
         return { data, meta };
       })
+    );
+  }
+
+  getFinancialReportById(id: string | number): Observable<FinancialReport> {
+    const url = `${environment.financialReports.getFinancialReports}/${id}`;
+    return this.http.get<any>(url).pipe(
+      map(res => this.unwrapData<FinancialReport>(res))
     );
   }
 
@@ -169,8 +192,12 @@ export class PublicApiService {
   }
 
   // 6. Partners
-  getPartners(): Observable<Partner[]> {
-    return this.http.get<any>(environment.partners.getAllPartners).pipe(
+  getPartners(locale?: string): Observable<Partner[]> {
+    let params = new HttpParams();
+    if (locale) {
+      params = params.set('locale', locale);
+    }
+    return this.http.get<any>(environment.partners.getAllPartners, { params }).pipe(
       map(res => {
         const items = this.unwrapData<Partner[]>(res);
         return Array.isArray(items) ? items : [];
@@ -179,8 +206,12 @@ export class PublicApiService {
   }
 
   // 7. Products
-  getProductCategories(): Observable<ProductCategory[]> {
-    return this.http.get<any>(environment.productCategories.getProductCategories).pipe(
+  getProductCategories(locale?: string): Observable<ProductCategory[]> {
+    let params = new HttpParams();
+    if (locale) {
+      params = params.set('locale', locale);
+    }
+    return this.http.get<any>(environment.productCategories.getProductCategories, { params }).pipe(
       map(res => {
         const items = this.unwrapData<ProductCategory[]>(res);
         return Array.isArray(items) ? items : [];
@@ -188,14 +219,17 @@ export class PublicApiService {
     );
   }
 
-  getProducts(page = 1, perPage = 10, categoryId?: string | number): Observable<PaginatedResponse<Product>> {
+  getProducts(page = 1, pageSize = 100, categorySlug?: string, locale?: string): Observable<PaginatedResponse<Product>> {
     let params = new HttpParams()
       .set('page', page.toString())
-      .set('perPage', perPage.toString())
-      .set('limit', perPage.toString());
+      .set('pageSize', pageSize.toString());
 
-    if (categoryId && categoryId !== 'all' && categoryId !== 0) {
-      params = params.set('categoryId', categoryId.toString());
+    if (categorySlug && categorySlug !== 'all' && categorySlug.trim() !== '') {
+      params = params.set('categorySlug', categorySlug.toString());
+    }
+
+    if (locale) {
+      params = params.set('locale', locale);
     }
 
     return this.http.get<any>(environment.products.getProducts, { params }).pipe(
@@ -203,9 +237,10 @@ export class PublicApiService {
         const data = Array.isArray(res?.data) ? res.data : (Array.isArray(res) ? res : []);
         const meta = res?.meta || {
           current_page: page,
-          total_pages: Math.ceil(data.length / perPage) || 1,
+          total_pages: Math.ceil(data.length / pageSize) || 1,
           total: data.length,
-          per_page: perPage
+          per_page: pageSize,
+          page_size: pageSize
         };
         return { data, meta };
       })
@@ -248,6 +283,19 @@ export class PublicApiService {
     const url = environment.services.getServiceDetails.replace('{slug}', encodeURIComponent(slug));
     return this.http.get<any>(url).pipe(
       map(res => this.unwrapData<ServiceDetail>(res))
+    );
+  }
+
+  getServicesLookup(locale?: string): Observable<{ id: string; name: string }[]> {
+    let params = new HttpParams();
+    if (locale) {
+      params = params.set('locale', locale);
+    }
+    return this.http.get<any>(environment.services.getServicesLookup, { params }).pipe(
+      map(res => {
+        const items = this.unwrapData<any>(res);
+        return Array.isArray(items) ? items : [];
+      })
     );
   }
 

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, signal, DestroyRef } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal, computed, DestroyRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RevealDirective } from '../../../../shared/ui/reveal/reveal.directive';
 import { StatisticCardComponent } from '../../../../shared/ui/statistic-card/statistic-card.component';
@@ -220,27 +220,34 @@ const INITIAL_FACTS: ReadonlyArray<CompanyFact> = [
 
           <!-- Right Statistic Cards Grid -->
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 h-full items-stretch">
-            <div class="flex flex-col gap-4 sm:gap-6 h-full justify-between">
-              @if (stats()[0]) {
-                <div appReveal revealDirection="up" [revealDelay]="150" class="h-full flex-1">
-                  <app-statistic-card [stat]="stats()[0]"></app-statistic-card>
+            <!-- Column 1 -->
+            <div class="flex flex-col gap-4 sm:gap-6 justify-between h-full">
+              <!-- Card 1: Layihə (Taller) -->
+              @if (orderedStats()[0]) {
+                <div appReveal revealDirection="up" [revealDelay]="150" class="flex-1 flex flex-col min-h-[200px] sm:min-h-[220px]">
+                  <app-statistic-card [stat]="orderedStats()[0]"></app-statistic-card>
                 </div>
               }
-              @if (stats()[1]) {
-                <div appReveal revealDirection="up" [revealDelay]="250" class="h-full flex-1">
-                  <app-statistic-card [stat]="stats()[1]"></app-statistic-card>
+              <!-- Card 2: Təcrübə (Shorter) -->
+              @if (orderedStats()[1]) {
+                <div appReveal revealDirection="up" [revealDelay]="250" class="flex flex-col min-h-[130px] sm:min-h-[140px]">
+                  <app-statistic-card [stat]="orderedStats()[1]"></app-statistic-card>
                 </div>
               }
             </div>
-            <div class="flex flex-col gap-4 sm:gap-6 h-full justify-between lg:mt-0">
-              @if (stats()[2]) {
-                <div appReveal revealDirection="up" [revealDelay]="350" class="h-full flex-1">
-                  <app-statistic-card [stat]="stats()[2]"></app-statistic-card>
+
+            <!-- Column 2 -->
+            <div class="flex flex-col gap-4 sm:gap-6 justify-between h-full">
+              <!-- Card 3: Tərəfdaş (Taller) -->
+              @if (orderedStats()[2]) {
+                <div appReveal revealDirection="up" [revealDelay]="350" class="flex-1 flex flex-col min-h-[200px] sm:min-h-[220px]">
+                  <app-statistic-card [stat]="orderedStats()[2]"></app-statistic-card>
                 </div>
               }
-              @if (stats()[3]) {
-                <div appReveal revealDirection="up" [revealDelay]="450" class="h-full flex-1">
-                  <app-statistic-card [stat]="stats()[3]"></app-statistic-card>
+              <!-- Card 4: Müştəri (Shorter) -->
+              @if (orderedStats()[3]) {
+                <div appReveal revealDirection="up" [revealDelay]="450" class="flex flex-col min-h-[130px] sm:min-h-[140px]">
+                  <app-statistic-card [stat]="orderedStats()[3]"></app-statistic-card>
                 </div>
               }
             </div>
@@ -261,6 +268,18 @@ export class CompanyPageComponent {
   private readonly destroyRef = inject(DestroyRef);
 
   readonly stats = signal<AboutStatistic[]>([...ABOUT_STATS]);
+
+  readonly orderedStats = computed(() => {
+    const list = this.stats();
+    if (!list || list.length === 0) return [];
+
+    const layihe = list.find(s => s.label?.toLowerCase().includes('layihə')) || list[0];
+    const tecrube = list.find(s => s.label?.toLowerCase().includes('təcrübə')) || list[2] || list[0];
+    const terefdas = list.find(s => s.label?.toLowerCase().includes('tərəfdaş')) || list[1] || list[0];
+    const musteri = list.find(s => s.label?.toLowerCase().includes('müştəri')) || list[3] || list[0];
+
+    return [layihe, tecrube, terefdas, musteri];
+  });
   readonly heroTitle = signal<string>('Haqqımızda');
   readonly heroBody = signal<string>(
     'QAFQAZNET — 2015-ci ildən etibarən bizneslərin inkişafına dəstək olan etibarlı İT tərəfdaşıdır.\nBiz texnologiyanı sadəcə bir vasitə kimi deyil, biznes uğurunun əsas açarı kimi görürük.'
