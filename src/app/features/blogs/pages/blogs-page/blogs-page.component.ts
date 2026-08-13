@@ -346,6 +346,7 @@ export class BlogsPageComponent {
     }
 
     private scrollToTop() {
+      if (typeof document === 'undefined') return;
       const el = document.getElementById('blog-list');
       if (el) {
         el.scrollIntoView({behavior: 'smooth'});

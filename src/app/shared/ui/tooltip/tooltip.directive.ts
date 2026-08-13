@@ -8,7 +8,7 @@ import {
   PLATFORM_ID,
   Renderer2
 } from '@angular/core';
-import { isPlatformBrowser } from '@angular/common';
+import { isPlatformBrowser, DOCUMENT } from '@angular/common';
 
 @Directive({
   selector: '[appTooltip]',
@@ -24,7 +24,8 @@ export class TooltipDirective implements OnDestroy {
   constructor(
     private el: ElementRef<HTMLElement>,
     private renderer: Renderer2,
-    @Inject(PLATFORM_ID) platformId: Object
+    @Inject(PLATFORM_ID) platformId: Object,
+    @Inject(DOCUMENT) private document: Document
   ) {
     this.isBrowser = isPlatformBrowser(platformId);
   }
@@ -53,7 +54,7 @@ export class TooltipDirective implements OnDestroy {
   }
 
   private show() {
-    if (this.tooltipEl) return;
+    if (this.tooltipEl || !this.isBrowser) return;
 
     const host = this.el.nativeElement;
     
@@ -89,7 +90,7 @@ export class TooltipDirective implements OnDestroy {
     });
 
     this.tooltipEl.textContent = this.tooltipText || '';
-    this.renderer.appendChild(document.body, this.tooltipEl);
+    this.renderer.appendChild(this.document.body, this.tooltipEl);
 
     setTimeout(() => {
       if (!this.tooltipEl) return;
@@ -135,7 +136,7 @@ export class TooltipDirective implements OnDestroy {
       this.renderer.setStyle(el, 'transform', 'scale(0.95)');
       setTimeout(() => {
         if (el.parentNode) {
-          this.renderer.removeChild(document.body, el);
+          this.renderer.removeChild(this.document.body, el);
         }
       }, 150);
     }

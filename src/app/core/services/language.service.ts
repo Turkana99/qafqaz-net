@@ -1,4 +1,5 @@
-import { Injectable, computed, signal } from '@angular/core';
+import { Injectable, computed, signal, inject, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { toObservable } from '@angular/core/rxjs-interop';
 import { Observable } from 'rxjs';
 
@@ -9,6 +10,8 @@ export type ApiLocale = 'az' | 'en' | 'ru';
   providedIn: 'root'
 })
 export class LanguageService {
+  private readonly platformId = inject(PLATFORM_ID);
+
   readonly currentLanguage = signal<DisplayLang>(this.loadInitialLanguage());
 
   readonly currentLocale = computed<ApiLocale>(() => {
@@ -20,6 +23,9 @@ export class LanguageService {
   constructor() {}
 
   private loadInitialLanguage(): DisplayLang {
+    if (!isPlatformBrowser(this.platformId)) {
+      return 'AZ';
+    }
     try {
       const saved = localStorage.getItem('qafqaz_language') as DisplayLang | null;
       if (saved && (saved === 'AZ' || saved === 'EN' || saved === 'RU')) {
@@ -36,10 +42,12 @@ export class LanguageService {
       return;
     }
     this.currentLanguage.set(lang);
-    try {
-      localStorage.setItem('qafqaz_language', lang);
-    } catch {
-      // localStorage may be inaccessible
+    if (isPlatformBrowser(this.platformId)) {
+      try {
+        localStorage.setItem('qafqaz_language', lang);
+      } catch {
+        // localStorage may be inaccessible
+      }
     }
   }
 }

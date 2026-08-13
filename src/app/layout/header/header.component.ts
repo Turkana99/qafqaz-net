@@ -3,10 +3,12 @@ import {
     Component,
     DestroyRef,
     HostListener,
+    PLATFORM_ID,
     computed,
     inject,
     signal
 } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import {NavigationEnd, Router, RouterLink, RouterLinkActive} from '@angular/router';
 import {NavItem} from '../../core/constants/navigation';
 import {ButtonComponent} from '../../shared/ui/button/button.component';
@@ -188,6 +190,7 @@ export class HeaderComponent {
     private readonly destroyRef = inject(DestroyRef);
     private readonly languageService = inject(LanguageService);
     private readonly translationService = inject(TranslationService);
+    private readonly platformId = inject(PLATFORM_ID);
 
     readonly t = this.translationService.translations;
 
@@ -305,15 +308,19 @@ export class HeaderComponent {
 
     toggleMenu() {
         this.isMenuOpen.update((v) => !v);
-        if (this.isMenuOpen()) {
-            document.body.style.overflow = 'hidden';
-        } else {
-            document.body.style.overflow = '';
+        if (isPlatformBrowser(this.platformId)) {
+            if (this.isMenuOpen()) {
+                document.body.style.overflow = 'hidden';
+            } else {
+                document.body.style.overflow = '';
+            }
         }
     }
 
     closeMenu() {
         this.isMenuOpen.set(false);
-        document.body.style.overflow = '';
+        if (isPlatformBrowser(this.platformId)) {
+            document.body.style.overflow = '';
+        }
     }
 }

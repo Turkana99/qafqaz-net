@@ -835,6 +835,7 @@ export class CareerDetailPageComponent {
     }
 
     scrollToForm() {
+        if (typeof document === 'undefined') return;
         const el = document.getElementById('apply-form-section');
         if (el) {
             el.scrollIntoView({behavior: 'smooth', block: 'start'});
