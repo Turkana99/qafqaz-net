@@ -86,12 +86,29 @@ export interface Partner {
   sortOrder?: number;
 }
 
+export interface PublicProductItem {
+  slug: string;
+  title: string;
+  shortDescription?: string | null;
+  imageUrl?: string | null;
+}
+
+export interface ProductCategorySection {
+  slug: string;
+  title: string;
+  sortOrder?: number;
+  products?: PublicProductItem[];
+}
+
 export interface ProductCategory {
-  id: string | number;
+  id?: string | number;
   name: string;
   slug?: string;
   iconUrl?: string;
   sortOrder?: number;
+  metaTitle?: string | null;
+  metaDescription?: string | null;
+  sections?: ProductCategorySection[];
 }
 
 export interface Product {

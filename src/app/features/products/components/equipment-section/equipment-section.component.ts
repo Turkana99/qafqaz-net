@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, signal, input, output, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { EQUIPMENT_CATEGORIES, EquipmentCategory } from '../../data/equipment.data';
+import { EQUIPMENT_CATEGORIES, EquipmentCategory, EquipmentGroup } from '../../data/equipment.data';
 import { RevealDirective } from '../../../../shared/ui/reveal/reveal.directive';
 import { TranslationService } from '../../../../core/services/translation.service';
 
@@ -205,8 +205,52 @@ export class EquipmentSectionComponent {
       const sorted = [...catList].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
       return sorted.map((cat, idx) => {
         const catSlug = String(cat.slug || cat.id || `api_cat_${idx}`);
-        const catName = cat.name || 'Kateqoriya';
-        const matchedProds = list;
+        const catName = cat.name || cat.label || 'Kateqoriya';
+
+        let groups: EquipmentGroup[] = [];
+
+        if (Array.isArray(cat.sections) && cat.sections.length > 0) {
+          const sortedSections = [...cat.sections].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+          groups = sortedSections.map((sec, sIdx) => {
+            const secSlug = String(sec.slug || `sec_${sIdx}`);
+            const secTitle = sec.title || sec.name || '';
+            const prods = Array.isArray(sec.products) ? sec.products : [];
+
+            return {
+              id: secSlug,
+              slug: secSlug,
+              title: secTitle,
+              slider: prods.length >= 3,
+              items: prods.map((p: any, pIdx: number) => ({
+                id: String(p.slug || p.id || `prod_${pIdx}`),
+                slug: p.slug,
+                label: p.title || p.label || p.name || '',
+                title: p.title,
+                shortDescription: p.shortDescription,
+                imageUrl: p.imageUrl
+              }))
+            };
+          });
+        } else {
+          const matchedProds = list;
+          groups = [
+            {
+              id: `grp_${catSlug}`,
+              slug: catSlug,
+              title: catName,
+              slider: matchedProds.length >= 3,
+              items: matchedProds.map(it => ({
+                id: String(it.id || it.slug),
+                slug: it.slug,
+                label: it.title || it.name,
+                title: it.title,
+                shortDescription: it.shortDescription,
+                imageUrl: it.imageUrl,
+                categoryName: it.categoryName
+              }))
+            }
+          ];
+        }
 
         return {
           id: catSlug,
@@ -214,21 +258,7 @@ export class EquipmentSectionComponent {
           label: catName,
           defaultArrowIcon: 'assets/icons/gray-arrow.svg',
           activeArrowIcon: 'assets/icons/green-arrow.svg',
-          groups: [
-            {
-              id: `grp_${catSlug}`,
-              title: catName,
-              slider: matchedProds.length > 4,
-              items: matchedProds.map(it => ({
-                id: String(it.id || it.slug),
-                label: it.title || it.name,
-                slug: it.slug,
-                shortDescription: it.shortDescription,
-                imageUrl: it.imageUrl,
-                categoryName: it.categoryName
-              }))
-            }
-          ]
+          groups
         };
       });
     }
@@ -256,12 +286,14 @@ export class EquipmentSectionComponent {
         groups: [
           {
             id: `grp_${catId}`,
+            slug: catId,
             title: catName,
-            slider: items.length > 4,
+            slider: items.length >= 3,
             items: items.map(it => ({
               id: String(it.id || it.slug),
-              label: it.title || it.name,
               slug: it.slug,
+              label: it.title || it.name,
+              title: it.title,
               shortDescription: it.shortDescription,
               imageUrl: it.imageUrl,
               categoryName: it.categoryName

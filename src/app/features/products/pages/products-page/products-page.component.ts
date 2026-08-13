@@ -146,15 +146,18 @@ export class ProductsPageComponent {
       takeUntilDestroyed(this.destroyRef)
     ).subscribe(({ categoriesRes, pageContent }: any) => {
       if (Array.isArray(categoriesRes) && categoriesRes.length > 0) {
-        this.categories.set(categoriesRes);
-        const firstCategory = categoriesRes[0];
+        const sorted = [...categoriesRes].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+        this.categories.set(sorted);
+        const firstCategory = sorted[0];
         const firstSlug = firstCategory.slug || firstCategory.id;
         if (firstSlug) {
           const slugStr = String(firstSlug);
           this.selectedCategorySlug.set(slugStr);
-          this.loadProducts(1, slugStr);
-        } else {
-          this.loadProducts(1);
+        }
+
+        const hasSections = sorted.some((cat: any) => Array.isArray(cat.sections) && cat.sections.length > 0);
+        if (!hasSections) {
+          this.loadProducts(1, firstSlug ? String(firstSlug) : undefined);
         }
       } else {
         this.loadProducts(1);
@@ -221,7 +224,11 @@ export class ProductsPageComponent {
     if (this.selectedCategorySlug() !== categorySlug) {
       this.selectedCategorySlug.set(categorySlug);
       this.currentPage.set(1);
-      this.loadProducts(1, categorySlug);
+      const cats = this.categories();
+      const hasSections = Array.isArray(cats) && cats.some((cat: any) => Array.isArray(cat.sections) && cat.sections.length > 0);
+      if (!hasSections) {
+        this.loadProducts(1, categorySlug);
+      }
     }
   }
 }

@@ -2,10 +2,14 @@ export interface EquipmentItem {
   readonly id: string;
   readonly label: string;
   readonly slug?: string;
+  readonly title?: string;
+  readonly shortDescription?: string | null;
+  readonly imageUrl?: string | null;
 }
 
 export interface EquipmentGroup {
   readonly id: string;
+  readonly slug?: string;
   readonly title: string;
   readonly items: readonly EquipmentItem[];
   readonly slider?: boolean;
@@ -96,7 +100,7 @@ export const EQUIPMENT_CATEGORIES: ReadonlyArray<EquipmentCategory> = [
       {
         id: 'cartridges',
         title: 'Kartriclər və Sərf Təchizatı',
-        slider: true,
+        slider: false,
         items: [
           { id: 'cart-1', label: 'Orijinal və Analoq Kartriclər' },
           { id: 'cart-2', label: 'Toner və Çap Kağızları' },
